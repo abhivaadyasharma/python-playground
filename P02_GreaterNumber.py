@@ -1,3 +1,5 @@
+#Author: Abhivaadya Sharma
+
 # Loop to keep asking for numbers until the user decides to stop
 while True:
     # Get input from the user for two numbers
