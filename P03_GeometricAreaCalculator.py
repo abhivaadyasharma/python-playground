@@ -1,3 +1,5 @@
+#Author: Abhivaadya Sharma
+
 def square():
     sidesq = float(input("Side of square: "))
     areasq = sidesq * sidesq
