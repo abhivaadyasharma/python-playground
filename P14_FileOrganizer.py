@@ -45,12 +45,39 @@ def organize_files(directory):
                 shutil.move(filename, os.path.join('Others', filename))
                 print(f"Moved: {filename} -> Others/")
 
+# Function to get user directory choice
+def get_directory_choice():
+    print("Select a directory to organize:")
+    print("1. Desktop")
+    print("2. Downloads")
+    print("3. Documents")
+    print("4. Custom directory")
+
+    choice = input("Enter your choice (1-4): ")
+    user_directory = ""
+
+    if choice == "1":
+        user_directory = os.path.expanduser("~/Desktop")
+    elif choice == "2":
+        user_directory = os.path.expanduser("~/Downloads")
+    elif choice == "3":
+        user_directory = os.path.expanduser("~/Documents")
+    elif choice == "4":
+        user_directory = input("Enter the full path of the directory: ")
+    else:
+        print("Invalid choice! Please select a valid option.")
+        return None
+
+    # Check if the directory exists
+    if os.path.isdir(user_directory):
+        return user_directory
+    else:
+        print(f"Directory {user_directory} does not exist. Please try again.")
+        return None
+
 # Main program
 if __name__ == "__main__":
-    # Specify the directory you want to organize (replace with your path)
-    directory = input("Enter the path to the directory you want to organize: ")
+    directory = get_directory_choice()
     
-    if os.path.isdir(directory):
+    if directory:
         organize_files(directory)
-    else:
-        print("Invalid directory path. Please try again.")
