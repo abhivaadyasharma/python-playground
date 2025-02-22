@@ -1,3 +1,5 @@
+#Author`; Abhivaadya Sharma
+
 # Step 1: Ask the user how many numbers they want to add
 while True:
  num_count = int(input("How many numbers would you like to add? "))
