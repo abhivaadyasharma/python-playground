@@ -1,3 +1,5 @@
+#Author: Abhivaadya Sharma
+
 def area():
     print("Available shapes: [square, rectangle, triangle, circle]")
     choice = input("Out of the above options, which shape's area do you want to calculate? ").lower()
