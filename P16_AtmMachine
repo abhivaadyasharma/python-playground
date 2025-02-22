@@ -70,6 +70,35 @@ class BankAccount:
                 fd.display_fd_info()
         else:
             print("No fixed deposits found.")
+    
+    def edit_account_info(self):
+        print("\nEdit Account Information:")
+        print("1. Name")
+        print("2. Phone")
+        print("3. Parents' Name")
+        print("4. Email")
+        print("5. Address")
+        print("6. Parents' Phone")
+        print("7. Exit")
+        
+        option = input("Select the information you want to edit (1/2/3/4/5/6/7): ")
+        
+        if option == '1':
+            self.name = input("Enter new name: ")
+        elif option == '2':
+            self.phone = input("Enter new phone number: ")
+        elif option == '3':
+            self.parents_name = input("Enter new parents' name: ")
+        elif option == '4':
+            self.email = input("Enter new email ID: ")
+        elif option == '5':
+            self.address = input("Enter new address: ")
+        elif option == '6':
+            self.parents_phone = input("Enter new parents' phone number: ")
+        elif option == '7':
+            print("Exiting edit menu.")
+        else:
+            print("Invalid option. Please try again.")
 
 class FixedDeposit:
     def __init__(self, amount, duration, interest_rate, interest, total_amount):
@@ -95,7 +124,8 @@ def atm_menu():
     print("5. Account Information")
     print("6. Create Fixed Deposit")
     print("7. View Fixed Deposits")
-    print("8. Exit")
+    print("8. Edit Account Information")
+    print("9. Exit")
 
 def create_account():
     print("\nCreate a New Bank Account:")
@@ -118,7 +148,7 @@ def main():
 
     while True:
         atm_menu()
-        choice = input("Select an option (1/2/3/4/5/6/7/8): ")
+        choice = input("Select an option (1/2/3/4/5/6/7/8/9): ")
         
         if choice == '1':  # Create an account
             if account is None:
@@ -157,11 +187,19 @@ def main():
                 account.display_fixed_deposits()
             else:
                 print("Password incorrect or no account found.")
-        elif choice == '8':  # Exit the program
+        elif choice == '8':  # Edit Account Information
+            if account and account.check_password():
+                account.edit_account_info()
+            else:
+                print("Password incorrect or no account found.")
+        elif choice == '9':  # Exit the program
             print("Thank you for using the ATM. Goodbye!")
             break
         else:
             print("Invalid option. Please try again.")
+            
 
 if __name__ == "__main__":
     main()
+
+
