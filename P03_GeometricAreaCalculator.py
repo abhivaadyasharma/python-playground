@@ -1,32 +1,61 @@
-#Author: Abhivaadya Sharma
+# Author: Abhivaadya Sharma
 
 def square():
-    sidesq = float(input("Side of square: "))
-    areasq = sidesq * sidesq
-    print("Area of the square: ", areasq)
-
+    while True:
+        try:
+            sidesq = float(input("Side of square: "))
+            if sidesq <= 0:
+                print("Side length must be a positive number. Please try again.")
+                continue
+            areasq = sidesq * sidesq
+            print(f"Area of the square: {areasq:.2f}")
+            break
+        except ValueError:
+            print("Invalid input! Please enter a valid number.")
 
 def rectangle():
-    length = float(input("What is length? "))
-    breadth = float(input("What is breadth? "))
-    area_of_rectangle = length * breadth
-    print("Area of rectangle:", area_of_rectangle)
-
+    while True:
+        try:
+            length = float(input("What is the length? "))
+            breadth = float(input("What is the breadth? "))
+            if length <= 0 or breadth <= 0:
+                print("Length and breadth must be positive numbers. Please try again.")
+                continue
+            area_of_rectangle = length * breadth
+            print(f"Area of rectangle: {area_of_rectangle:.2f}")
+            break
+        except ValueError:
+            print("Invalid input! Please enter valid numbers.")
 
 def triangle():
-    height = float(input("Height: "))
-    base = float(input("Base: "))
-    area_of_triangle = 0.5 * height * base
-    print("Area of triangle:", area_of_triangle)
-
+    while True:
+        try:
+            height = float(input("Height: "))
+            base = float(input("Base: "))
+            if height <= 0 or base <= 0:
+                print("Height and base must be positive numbers. Please try again.")
+                continue
+            area_of_triangle = 0.5 * height * base
+            print(f"Area of triangle: {area_of_triangle:.2f}")
+            break
+        except ValueError:
+            print("Invalid input! Please enter valid numbers.")
 
 def circle():
-    radius = float(input("Radius: "))
-    area_of_circle = 3.14159265359 * radius * radius
-    print("Area of circle:", area_of_circle)
+    while True:
+        try:
+            radius = float(input("Radius: "))
+            if radius <= 0:
+                print("Radius must be a positive number. Please try again.")
+                continue
+            area_of_circle = 3.14159265359 * radius * radius
+            print(f"Area of circle: {area_of_circle:.2f}")
+            break
+        except ValueError:
+            print("Invalid input! Please enter a valid number.")
 
 def main():
-    while True:  
+    while True:
         print("\nAvailable shapes: [square, rectangle, triangle, circle]")
         choice = input("Out of the above options, which shape's area do you want to calculate? ").lower()
 
