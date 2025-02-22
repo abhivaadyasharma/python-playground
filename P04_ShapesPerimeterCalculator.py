@@ -1,3 +1,5 @@
+#Author: Abhivaadya Sharma
+
 def square():
     side=float(input("What is the length of side? "))
     Perimeter_of_square=4*side
@@ -20,7 +22,7 @@ def triangle():
 
 def circle():
     radius=float(input("What is length of radius? ")) 
-    Perimeter_of_circle= 2*14159265359*radius
+    Perimeter_of_circle= 2*3.14159265359*radius
     print ("Perimeter of circle:", Perimeter_of_circle)
 
 
