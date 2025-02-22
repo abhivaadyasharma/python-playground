@@ -1,3 +1,5 @@
+#Author: Abhivaadya Sharma
+
 def check_divisibility(number):
     """Check divisibility and print appropriate message."""
     if number % 2 == 0 and number % 5 == 0:
