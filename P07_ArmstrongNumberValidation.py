@@ -1,3 +1,5 @@
+#Author: Abhivaadya Sharma
+
 # Function to check if a number is an Armstrong number
 def is_armstrong(num):
     # Convert the number to string to easily calculate the number of digits
