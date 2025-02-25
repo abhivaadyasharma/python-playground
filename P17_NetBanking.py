@@ -1,0 +1,333 @@
+import hashlib
+import random
+import time
+import base64
+from datetime import datetime
+
+# Function for encryption and decryption (replaced cryptography.fernet with hashlib and base64)
+def encrypt_data(data, key):
+    # Create a sha256 hash of the key and data for a simple "encryption"
+    hash_object = hashlib.sha256(key.encode() + data.encode())
+    encrypted_data = base64.urlsafe_b64encode(hash_object.digest())
+    return encrypted_data
+
+def decrypt_data(encrypted_data, key):
+    # Since it's a hash, decryption isn't possible, so we just return a message
+    return "Decryption not supported with this method."
+
+# Class for managing user accounts
+class BankAccount:
+    def __init__(self, account_number, account_type, balance=0):
+        self.account_number = account_number
+        self.account_type = account_type
+        self.balance = balance
+        self.transactions = []
+        self.loan_balance = 0
+        self.interest_rate = 0
+        self.interest_calculation_type = "simple"
+
+    def deposit(self, amount):
+        if amount > 0:
+            self.balance += amount
+            self.transactions.append(f"Deposited ${amount} at {datetime.now()}")
+            return True
+        return False
+
+    def withdraw(self, amount):
+        if amount <= self.balance:
+            self.balance -= amount
+            self.transactions.append(f"Withdrew ${amount} at {datetime.now()}")
+            return True
+        return False
+
+    def transfer(self, to_account, amount):
+        if amount <= self.balance:
+            self.balance -= amount
+            to_account.deposit(amount)
+            self.transactions.append(f"Transferred ${amount} to Account {to_account.account_number} at {datetime.now()}")
+            return True
+        return False
+
+    def apply_interest(self):
+        if self.account_type == "savings" and self.balance > 0:
+            if self.interest_calculation_type == "simple":
+                interest = self.balance * self.interest_rate
+            else:  # compound interest
+                interest = self.balance * (1 + self.interest_rate) ** 1 - self.balance
+            self.balance += interest
+            self.transactions.append(f"Applied interest at {datetime.now()}: ${interest}")
+            return True
+        return False
+
+    def get_transaction_history(self):
+        return self.transactions
+
+# Class for managing users (Registration, Login)
+class BankUser:
+    def __init__(self, full_name, address, dob, phone, email, ssn, password):
+        self.full_name = full_name
+        self.address = address
+        self.dob = dob
+        self.phone = phone
+        self.email = email
+        self.ssn = ssn
+        self.password_hash = self.hash_password(password)
+        self.account_number = self.generate_account_number()
+        self.accounts = []
+
+    def hash_password(self, password):
+        return hashlib.sha256(password.encode()).hexdigest()
+
+    def verify_password(self, password):
+        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+
+    def generate_account_number(self):
+        return random.randint(1000000000, 9999999999)
+
+    def create_account(self, account_type):
+        new_account = BankAccount(self.account_number, account_type)
+        self.accounts.append(new_account)
+        return new_account
+
+# Class for managing admins (Admin login, account creation, deletion)
+class BankAdmin:
+    def __init__(self, username, password):
+        self.username = username
+        self.password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    def verify_password(self, password):
+        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+
+# Class for managing employees (Employee login and limited functionality)
+class BankEmployee:
+    def __init__(self, username, password):
+        self.username = username
+        self.password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    def verify_password(self, password):
+        return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
+
+    def view_account_info(self, user):
+        for account in user.accounts:
+            print(f"Account Number: {account.account_number}")
+            print(f"Account Type: {account.account_type}")
+            print(f"Balance: ${account.balance}")
+            print(f"Transactions: {account.get_transaction_history()}")
+            print("-" * 30)
+
+# Dummy data (would typically be retrieved from a database)
+user_db = {}
+admin_db = {"admin": BankAdmin("admin", "admin123")}
+employee_db = {
+    "employee1": BankEmployee("employee1", "password1"),
+    "employee2": BankEmployee("employee2", "password2"),
+}
+encryption_key = "secretkey"  # You should securely store this key
+
+# Functions for User Registration & Authentication
+def user_registration():
+    full_name = input("Enter Full Name: ")
+    address = input("Enter Address: ")
+    dob = input("Enter Date of Birth (YYYY-MM-DD): ")
+    phone = input("Enter Phone Number: ")
+    email = input("Enter Email: ")
+    ssn = input("Enter Social Security Number (or equivalent): ")
+    password = input("Enter Password: ")
+
+    user = BankUser(full_name, address, dob, phone, email, ssn, password)
+    user_db[user.account_number] = user
+    print("User registered successfully!")
+    return user
+
+def user_login():
+    account_number = int(input("Enter Account Number: "))
+    password = input("Enter Password: ")
+
+    user = user_db.get(account_number)
+    if user and user.verify_password(password):
+        print("Login successful!")
+        return user
+    else:
+        print("Invalid credentials.")
+        return None
+
+# Functions for Admin login
+def admin_login():
+    username = input("Enter Admin Username: ")
+    password = input("Enter Admin Password: ")
+    admin = admin_db.get(username)
+    if admin and admin.verify_password(password):
+        print("Admin login successful!")
+        return admin
+    else:
+        print("Invalid credentials.")
+        return None
+
+# Functions for Employee login
+def employee_login():
+    username = input("Enter Employee Username: ")
+    password = input("Enter Employee Password: ")
+    employee = employee_db.get(username)
+    if employee and employee.verify_password(password):
+        print("Employee login successful!")
+        return employee
+    else:
+        print("Invalid credentials.")
+        return None
+
+# Functions for Transaction Management
+def deposit_account(user):
+    account_number = int(input("Enter Account Number to Deposit into: "))
+    amount = float(input("Enter Deposit Amount: "))
+
+    for account in user.accounts:
+        if account.account_number == account_number:
+            if account.deposit(amount):
+                print(f"Deposited ${amount} into account {account_number}.")
+            else:
+                print("Invalid deposit amount.")
+            return
+    print("Account not found.")
+
+def withdraw_account(user):
+    account_number = int(input("Enter Account Number to Withdraw from: "))
+    amount = float(input("Enter Withdrawal Amount: "))
+
+    for account in user.accounts:
+        if account.account_number == account_number:
+            if account.withdraw(amount):
+                print(f"Withdrew ${amount} from account {account_number}.")
+            else:
+                print("Insufficient funds.")
+            return
+    print("Account not found.")
+
+def transfer_account(user):
+    from_account_number = int(input("Enter Account Number to Transfer from: "))
+    to_account_number = int(input("Enter Account Number to Transfer to: "))
+    amount = float(input("Enter Transfer Amount: "))
+
+    from_account = None
+    to_account = None
+
+    for account in user.accounts:
+        if account.account_number == from_account_number:
+            from_account = account
+        if account.account_number == to_account_number:
+            to_account = account
+
+    if from_account and to_account:
+        if from_account.transfer(to_account, amount):
+            print(f"Transferred ${amount} from account {from_account_number} to {to_account_number}.")
+        else:
+            print("Insufficient funds.")
+    else:
+        print("Account not found.")
+
+# Employee Menu
+def employee_menu(employee):
+    while True:
+        print("\n=== Employee Menu ===")
+        print("1. View User Account Info")
+        print("2. Assist with Deposit/Withdrawal")
+        print("3. Issue New Account")
+        print("4. Exit")
+
+        employee_choice = input("Enter your choice: ")
+
+        if employee_choice == "1":
+            account_number = int(input("Enter Account Number to view: "))
+            user = user_db.get(account_number)
+            if user:
+                employee.view_account_info(user)
+            else:
+                print("Account not found.")
+        elif employee_choice == "2":
+            # Assist with deposit or withdrawal (Similar to the user functions)
+            user = user_login()
+            if user:
+                print("\n1. Deposit\n2. Withdraw")
+                action_choice = input("Enter choice: ")
+                if action_choice == "1":
+                    deposit_account(user)
+                elif action_choice == "2":
+                    withdraw_account(user)
+        elif employee_choice == "3":
+            # Employee creates a new user account
+            user_registration()
+        elif employee_choice == "4":
+            print("Exiting employee menu...")
+            break
+        else:
+            print("Invalid option.")
+
+# Main Program
+def main():
+    while True:
+        print("\n=== Welcome to the Bank ===")
+        print("1. Register as User")
+        print("2. Register as Admin")
+        print("3. Register as Employee")
+        print("4. User Login")
+        print("5. Admin Login")
+        print("6. Employee Login")
+        print("7. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            user_registration()
+        elif choice == "2":
+            admin_username = input("Enter Admin Username: ")
+            admin_password = input("Enter Admin Password: ")
+            admin_db[admin_username] = BankAdmin(admin_username, admin_password)
+            print("Admin registered successfully!")
+        elif choice == "3":
+            employee_username = input("Enter Employee Username: ")
+            employee_password = input("Enter Employee Password: ")
+            employee_db[employee_username] = BankEmployee(employee_username, employee_password)
+            print("Employee registered successfully!")
+        elif choice == "4":
+            user = user_login()
+            if user:
+                while True:
+                    print("\n=== User Menu ===")
+                    print("1. Deposit")
+                    print("2. Withdraw")
+                    print("3. Transfer")
+                    print("4. View Transaction History")
+                    print("5. Exit")
+
+                    user_choice = input("Enter your choice: ")
+
+                    if user_choice == "1":
+                        deposit_account(user)
+                    elif user_choice == "2":
+                        withdraw_account(user)
+                    elif user_choice == "3":
+                        transfer_account(user)
+                    elif user_choice == "4":
+                        account_number = int(input("Enter Account Number to view transaction history: "))
+                        for account in user.accounts:
+                            if account.account_number == account_number:
+                                print(account.get_transaction_history())
+                                break
+                    elif user_choice == "5":
+                        break
+        elif choice == "5":
+            admin = admin_login()
+            if admin:
+                print("\nAdmin Menu - Account Management (Create/Delete) and Reporting")
+                # You can extend this functionality to include admin features like account deletion, reporting, etc.
+        elif choice == "6":
+            employee = employee_login()
+            if employee:
+                employee_menu(employee)
+        elif choice == "7":
+            print("Exiting...")
+            break
+        else:
+            print("Invalid option.")
+
+if __name__ == "__main__":
+    main()
