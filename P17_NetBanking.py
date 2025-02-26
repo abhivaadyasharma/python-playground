@@ -124,7 +124,7 @@ employee_db = {
 }
 encryption_key = "secretkey"  # You should securely store this key
 
-# Functions for User Registration & Authentication
+# Functions for User Registration & Authentication with password confirmation
 def user_registration():
     full_name = input("Enter Full Name: ")
     address = input("Enter Address: ")
@@ -132,24 +132,45 @@ def user_registration():
     phone = input("Enter Phone Number: ")
     email = input("Enter Email: ")
     ssn = input("Enter Social Security Number (or equivalent): ")
-    password = input("Enter Password: ")
 
+    while True:
+        password = input("Enter Password: ")
+        confirm_password = input("Confirm Password: ")
+        if password == confirm_password:
+            break
+        else:
+            print("Passwords do not match. Please try again.")
+    
     user = BankUser(full_name, address, dob, phone, email, ssn, password)
     user_db[user.account_number] = user
     print("User registered successfully!")
     return user
 
-def user_login():
-    account_number = int(input("Enter Account Number: "))
-    password = input("Enter Password: ")
+def admin_registration():
+    admin_username = input("Enter Admin Username: ")
+    while True:
+        admin_password = input("Enter Admin Password: ")
+        confirm_admin_password = input("Confirm Admin Password: ")
+        if admin_password == confirm_admin_password:
+            break
+        else:
+            print("Passwords do not match. Please try again.")
+    
+    admin_db[admin_username] = BankAdmin(admin_username, admin_password)
+    print("Admin registered successfully!")
 
-    user = user_db.get(account_number)
-    if user and user.verify_password(password):
-        print("Login successful!")
-        return user
-    else:
-        print("Invalid credentials.")
-        return None
+def employee_registration():
+    employee_username = input("Enter Employee Username: ")
+    while True:
+        employee_password = input("Enter Employee Password: ")
+        confirm_employee_password = input("Confirm Employee Password: ")
+        if employee_password == confirm_employee_password:
+            break
+        else:
+            print("Passwords do not match. Please try again.")
+    
+    employee_db[employee_username] = BankEmployee(employee_username, employee_password)
+    print("Employee registered successfully!")
 
 # Functions for Admin login
 def admin_login():
@@ -224,6 +245,19 @@ def transfer_account(user):
     else:
         print("Account not found.")
 
+# Functions for User Login
+def user_login():
+    account_number = int(input("Enter Account Number: "))
+    password = input("Enter Password: ")
+
+    user = user_db.get(account_number)
+    if user and user.verify_password(password):
+        print("User login successful!")
+        return user
+    else:
+        print("Invalid credentials.")
+        return None
+
 # Employee Menu
 def employee_menu(employee):
     while True:
@@ -244,7 +278,7 @@ def employee_menu(employee):
                 print("Account not found.")
         elif employee_choice == "2":
             # Assist with deposit or withdrawal (Similar to the user functions)
-            user = user_login()
+            user = user_login()  # Now calls the user_login function
             if user:
                 print("\n1. Deposit\n2. Withdraw")
                 action_choice = input("Enter choice: ")
@@ -278,17 +312,11 @@ def main():
         if choice == "1":
             user_registration()
         elif choice == "2":
-            admin_username = input("Enter Admin Username: ")
-            admin_password = input("Enter Admin Password: ")
-            admin_db[admin_username] = BankAdmin(admin_username, admin_password)
-            print("Admin registered successfully!")
+            admin_registration()
         elif choice == "3":
-            employee_username = input("Enter Employee Username: ")
-            employee_password = input("Enter Employee Password: ")
-            employee_db[employee_username] = BankEmployee(employee_username, employee_password)
-            print("Employee registered successfully!")
+            employee_registration()
         elif choice == "4":
-            user = user_login()
+            user = user_login()  # Calls the user login for users
             if user:
                 while True:
                     print("\n=== User Menu ===")
