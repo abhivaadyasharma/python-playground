@@ -62,6 +62,21 @@ class BankAccount:
     def get_transaction_history(self):
         return self.transactions
 
+    def create_fixed_deposit(self, amount, interest_rate, months):
+        if amount > 0:
+            fd_balance = amount * (1 + interest_rate / 100) ** months
+            self.balance -= amount
+            self.transactions.append(f"Created Fixed Deposit of ${amount} for {months} months at {interest_rate}% interest.")
+            return fd_balance
+        return 0
+
+    def create_recurring_deposit(self, monthly_amount, interest_rate, months):
+        if monthly_amount > 0:
+            rd_balance = monthly_amount * months * (1 + interest_rate / 100)
+            self.transactions.append(f"Created Recurring Deposit of ${monthly_amount} for {months} months at {interest_rate}% interest.")
+            return rd_balance
+        return 0
+
 # Class for managing users (Registration, Login)
 class BankUser:
     def __init__(self, full_name, address, dob, phone, email, ssn, password):
@@ -324,7 +339,9 @@ def main():
                     print("2. Withdraw")
                     print("3. Transfer")
                     print("4. View Transaction History")
-                    print("5. Exit")
+                    print("5. Create Fixed Deposit")
+                    print("6. Create Recurring Deposit")
+                    print("7. Exit")
 
                     user_choice = input("Enter your choice: ")
 
@@ -341,6 +358,26 @@ def main():
                                 print(account.get_transaction_history())
                                 break
                     elif user_choice == "5":
+                        account_number = int(input("Enter Account Number for FD: "))
+                        amount = float(input("Enter FD Amount: "))
+                        interest_rate = float(input("Enter Interest Rate: "))
+                        months = int(input("Enter Duration in Months: "))
+                        for account in user.accounts:
+                            if account.account_number == account_number:
+                                fd_balance = account.create_fixed_deposit(amount, interest_rate, months)
+                                print(f"Fixed Deposit created with final balance: ${fd_balance}")
+                                break
+                    elif user_choice == "6":
+                        account_number = int(input("Enter Account Number for RD: "))
+                        monthly_amount = float(input("Enter Monthly Deposit Amount: "))
+                        interest_rate = float(input("Enter Interest Rate: "))
+                        months = int(input("Enter Duration in Months: "))
+                        for account in user.accounts:
+                            if account.account_number == account_number:
+                                rd_balance = account.create_recurring_deposit(monthly_amount, interest_rate, months)
+                                print(f"Recurring Deposit created with final balance: ${rd_balance}")
+                                break
+                    elif user_choice == "7":
                         break
         elif choice == "5":
             admin = admin_login()
