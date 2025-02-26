@@ -4,6 +4,10 @@ import time
 import base64
 from datetime import datetime
 
+# Bank Information
+BANK_NAME = "AVS Bank Limited"
+BANK_TAGLINE = "We manage your finance"
+
 # Function for encryption and decryption (replaced cryptography.fernet with hashlib and base64)
 def encrypt_data(data, key):
     # Create a sha256 hash of the key and data for a simple "encryption"
