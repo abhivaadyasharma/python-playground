@@ -2,21 +2,23 @@ import hashlib
 import random
 import time
 import base64
+import re
 from datetime import datetime
 
 # Bank Information
 BANK_NAME = "AVS Bank Limited"
 BANK_TAGLINE = "We manage your finance"
 
-# Function for encryption and decryption (replaced cryptography.fernet with hashlib and base64)
+# Function for encryption and decryption (simple encryption)
 def encrypt_data(data, key):
+    # Use a simple encryption approach by combining data and key
     # Create a sha256 hash of the key and data for a simple "encryption"
-    hash_object = hashlib.sha256(key.encode() + data.encode())
+    hash_object = hashlib.sha256((key + data).encode())
     encrypted_data = base64.urlsafe_b64encode(hash_object.digest())
     return encrypted_data
 
 def decrypt_data(encrypted_data, key):
-    # Since it's a hash, decryption isn't possible, so we just return a message
+    # Decryption is not possible with SHA256 hash directly
     return "Decryption not supported with this method."
 
 # Class for managing user accounts
@@ -35,21 +37,24 @@ class BankAccount:
             self.balance += amount
             self.transactions.append(f"Deposited ${amount} at {datetime.now()}")
             return True
+        print("Deposit amount must be greater than zero.")
         return False
 
     def withdraw(self, amount):
-        if amount <= self.balance:
+        if amount <= self.balance and amount > 0:
             self.balance -= amount
             self.transactions.append(f"Withdrew ${amount} at {datetime.now()}")
             return True
+        print("Insufficient funds or invalid amount.")
         return False
 
     def transfer(self, to_account, amount):
-        if amount <= self.balance:
+        if amount <= self.balance and amount > 0:
             self.balance -= amount
             to_account.deposit(amount)
             self.transactions.append(f"Transferred ${amount} to Account {to_account.account_number} at {datetime.now()}")
             return True
+        print("Insufficient funds or invalid transfer amount.")
         return False
 
     def apply_interest(self):
@@ -61,6 +66,7 @@ class BankAccount:
             self.balance += interest
             self.transactions.append(f"Applied interest at {datetime.now()}: ${interest}")
             return True
+        print("Interest can only be applied to savings accounts with a positive balance.")
         return False
 
     def get_transaction_history(self):
@@ -72,6 +78,7 @@ class BankAccount:
             self.balance -= amount
             self.transactions.append(f"Created Fixed Deposit of ${amount} for {months} months at {interest_rate}% interest.")
             return fd_balance
+        print("Amount must be greater than zero.")
         return 0
 
     def create_recurring_deposit(self, monthly_amount, interest_rate, months):
@@ -79,6 +86,7 @@ class BankAccount:
             rd_balance = monthly_amount * months * (1 + interest_rate / 100)
             self.transactions.append(f"Created Recurring Deposit of ${monthly_amount} for {months} months at {interest_rate}% interest.")
             return rd_balance
+        print("Monthly deposit must be greater than zero.")
         return 0
 
 # Class for managing users (Registration, Login)
@@ -143,13 +151,29 @@ employee_db = {
 }
 encryption_key = "secretkey"  # You should securely store this key
 
+# Validate email format
+def is_valid_email(email):
+    return re.match(r"[^@]+@[^@]+\.[^@]+", email)
+
+# Validate phone number format (basic)
+def is_valid_phone(phone):
+    return re.match(r"\+?[0-9]{10,15}", phone)
+
 # Functions for User Registration & Authentication with password confirmation
 def user_registration():
     full_name = input("Enter Full Name: ")
     address = input("Enter Address: ")
     dob = input("Enter Date of Birth (YYYY-MM-DD): ")
     phone = input("Enter Phone Number: ")
+    while not is_valid_phone(phone):
+        print("Invalid phone number format. Try again.")
+        phone = input("Enter Phone Number: ")
+    
     email = input("Enter Email: ")
+    while not is_valid_email(email):
+        print("Invalid email format. Try again.")
+        email = input("Enter Email: ")
+
     ssn = input("Enter Social Security Number (or equivalent): ")
 
     while True:
