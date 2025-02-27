@@ -11,14 +11,11 @@ BANK_TAGLINE = "We manage your finance"
 
 # Function for encryption and decryption (simple encryption)
 def encrypt_data(data, key):
-    # Use a simple encryption approach by combining data and key
-    # Create a sha256 hash of the key and data for a simple "encryption"
     hash_object = hashlib.sha256((key + data).encode())
     encrypted_data = base64.urlsafe_b64encode(hash_object.digest())
     return encrypted_data
 
 def decrypt_data(encrypted_data, key):
-    # Decryption is not possible with SHA256 hash directly
     return "Decryption not supported with this method."
 
 # Class for managing user accounts
@@ -36,6 +33,7 @@ class BankAccount:
         if amount > 0:
             self.balance += amount
             self.transactions.append(f"Deposited ${amount} at {datetime.now()}")
+            print(f"Deposit successful: ${amount}")
             return True
         print("Deposit amount must be greater than zero.")
         return False
@@ -44,6 +42,7 @@ class BankAccount:
         if amount <= self.balance and amount > 0:
             self.balance -= amount
             self.transactions.append(f"Withdrew ${amount} at {datetime.now()}")
+            print(f"Withdrawal successful: ${amount}")
             return True
         print("Insufficient funds or invalid amount.")
         return False
@@ -53,6 +52,7 @@ class BankAccount:
             self.balance -= amount
             to_account.deposit(amount)
             self.transactions.append(f"Transferred ${amount} to Account {to_account.account_number} at {datetime.now()}")
+            print(f"Transfer successful: ${amount}")
             return True
         print("Insufficient funds or invalid transfer amount.")
         return False
@@ -88,6 +88,24 @@ class BankAccount:
             return rd_balance
         print("Monthly deposit must be greater than zero.")
         return 0
+
+    def apply_for_loan(self, amount, interest_rate, term):
+        if amount > 0:
+            self.loan_balance = amount * (1 + interest_rate * term)
+            self.transactions.append(f"Loan of ${amount} applied with {interest_rate}% interest rate for {term} years.")
+            print(f"Loan application successful: ${amount} at {interest_rate}% for {term} years.")
+            return True
+        print("Loan amount must be greater than zero.")
+        return False
+
+    def repay_loan(self, amount):
+        if amount > 0 and amount <= self.loan_balance:
+            self.loan_balance -= amount
+            self.transactions.append(f"Loan repayment of ${amount} made.")
+            print(f"Loan repayment successful: ${amount}")
+            return True
+        print("Invalid loan repayment amount.")
+        return False
 
 # Class for managing users (Registration, Login)
 class BankUser:
@@ -125,6 +143,24 @@ class BankAdmin:
     def verify_password(self, password):
         return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
 
+    def delete_user_account(self, user_db, account_number):
+        user = user_db.get(account_number)
+        if user:
+            del user_db[account_number]
+            print(f"Account {account_number} deleted successfully.")
+            return True
+        print("Account not found.")
+        return False
+
+    def view_account_summary(self, user_db):
+        print("\n=== Account Summary ===")
+        for account_number, user in user_db.items():
+            print(f"Account Number: {user.account_number}")
+            print(f"Name: {user.full_name}")
+            print(f"Email: {user.email}")
+            print(f"Transactions: {user.get_transaction_history()}")
+            print("-" * 30)
+
 # Class for managing employees (Employee login and limited functionality)
 class BankEmployee:
     def __init__(self, username, password):
@@ -141,6 +177,11 @@ class BankEmployee:
             print(f"Balance: ${account.balance}")
             print(f"Transactions: {account.get_transaction_history()}")
             print("-" * 30)
+
+    def assist_with_loan(self, user):
+        print("\n--- Loan Assistance ---")
+        print(f"Loan Balance: ${user.loan_balance}")
+        print(f"Loan Transactions: {user.get_transaction_history()}")
 
 # Dummy data (would typically be retrieved from a database)
 user_db = {}
@@ -243,7 +284,6 @@ def employee_login():
 def deposit_account(user):
     account_number = int(input("Enter Account Number to Deposit into: "))
     amount = float(input("Enter Deposit Amount: "))
-
     for account in user.accounts:
         if account.account_number == account_number:
             if account.deposit(amount):
@@ -256,7 +296,6 @@ def deposit_account(user):
 def withdraw_account(user):
     account_number = int(input("Enter Account Number to Withdraw from: "))
     amount = float(input("Enter Withdrawal Amount: "))
-
     for account in user.accounts:
         if account.account_number == account_number:
             if account.withdraw(amount):
@@ -270,16 +309,13 @@ def transfer_account(user):
     from_account_number = int(input("Enter Account Number to Transfer from: "))
     to_account_number = int(input("Enter Account Number to Transfer to: "))
     amount = float(input("Enter Transfer Amount: "))
-
     from_account = None
     to_account = None
-
     for account in user.accounts:
         if account.account_number == from_account_number:
             from_account = account
         if account.account_number == to_account_number:
             to_account = account
-
     if from_account and to_account:
         if from_account.transfer(to_account, amount):
             print(f"Transferred ${amount} from account {from_account_number} to {to_account_number}.")
@@ -292,7 +328,6 @@ def transfer_account(user):
 def user_login():
     account_number = int(input("Enter Account Number: "))
     password = input("Enter Password: ")
-
     user = user_db.get(account_number)
     if user and user.verify_password(password):
         print("User login successful!")
@@ -308,7 +343,8 @@ def employee_menu(employee):
         print("1. View User Account Info")
         print("2. Assist with Deposit/Withdrawal")
         print("3. Issue New Account")
-        print("4. Exit")
+        print("4. Assist with Loan")
+        print("5. Exit")
 
         employee_choice = input("Enter your choice: ")
 
@@ -320,7 +356,6 @@ def employee_menu(employee):
             else:
                 print("Account not found.")
         elif employee_choice == "2":
-            # Assist with deposit or withdrawal (Similar to the user functions)
             user = user_login()  # Now calls the user_login function
             if user:
                 print("\n1. Deposit\n2. Withdraw")
@@ -330,9 +365,12 @@ def employee_menu(employee):
                 elif action_choice == "2":
                     withdraw_account(user)
         elif employee_choice == "3":
-            # Employee creates a new user account
             user_registration()
         elif employee_choice == "4":
+            user = user_login()  # Get user for loan assistance
+            if user:
+                employee.assist_with_loan(user)
+        elif employee_choice == "5":
             print("Exiting employee menu...")
             break
         else:
@@ -369,7 +407,9 @@ def main():
                     print("4. View Transaction History")
                     print("5. Create Fixed Deposit")
                     print("6. Create Recurring Deposit")
-                    print("7. Exit")
+                    print("7. Apply for Loan")
+                    print("8. Repay Loan")
+                    print("9. Exit")
 
                     user_choice = input("Enter your choice: ")
 
@@ -406,21 +446,55 @@ def main():
                                 print(f"Recurring Deposit created with final balance: ${rd_balance}")
                                 break
                     elif user_choice == "7":
+                        account_number = int(input("Enter Account Number for Loan: "))
+                        amount = float(input("Enter Loan Amount: "))
+                        interest_rate = float(input("Enter Loan Interest Rate: "))
+                        term = int(input("Enter Loan Term (in years): "))
+                        for account in user.accounts:
+                            if account.account_number == account_number:
+                                account.apply_for_loan(amount, interest_rate, term)
+                                break
+                    elif user_choice == "8":
+                        account_number = int(input("Enter Account Number to repay loan: "))
+                        amount = float(input("Enter Loan Repayment Amount: "))
+                        for account in user.accounts:
+                            if account.account_number == account_number:
+                                account.repay_loan(amount)
+                                break
+                    elif user_choice == "9":
                         break
+                    else:
+                        print("Invalid option.")
         elif choice == "5":
             admin = admin_login()
             if admin:
-                print("\nAdmin Menu - Account Management (Create/Delete) and Reporting")
-                # You can extend this functionality to include admin features like account deletion, reporting, etc.
+                while True:
+                    print("\n=== Admin Menu ===")
+                    print("1. Delete User Account")
+                    print("2. View Account Summary")
+                    print("3. Exit")
+
+                    admin_choice = input("Enter your choice: ")
+
+                    if admin_choice == "1":
+                        account_number = int(input("Enter Account Number to delete: "))
+                        admin.delete_user_account(user_db, account_number)
+                    elif admin_choice == "2":
+                        admin.view_account_summary(user_db)
+                    elif admin_choice == "3":
+                        break
+                    else:
+                        print("Invalid option.")
         elif choice == "6":
             employee = employee_login()
             if employee:
                 employee_menu(employee)
         elif choice == "7":
-            print("Exiting...")
+            print("Exiting the bank system...")
             break
         else:
             print("Invalid option.")
 
+# Run the program
 if __name__ == "__main__":
     main()
