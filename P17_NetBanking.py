@@ -202,6 +202,8 @@ def is_valid_phone(phone):
 
 # Functions for User Registration & Authentication with password confirmation
 def user_registration():
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     full_name = input("Enter Full Name: ")
     address = input("Enter Address: ")
     dob = input("Enter Date of Birth (YYYY-MM-DD): ")
@@ -231,6 +233,8 @@ def user_registration():
     return user
 
 def admin_registration():
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     admin_username = input("Enter Admin Username: ")
     while True:
         admin_password = input("Enter Admin Password: ")
@@ -244,6 +248,8 @@ def admin_registration():
     print("Admin registered successfully!")
 
 def employee_registration():
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     employee_username = input("Enter Employee Username: ")
     while True:
         employee_password = input("Enter Employee Password: ")
@@ -258,6 +264,8 @@ def employee_registration():
 
 # Functions for Admin login
 def admin_login():
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     username = input("Enter Admin Username: ")
     password = input("Enter Admin Password: ")
     admin = admin_db.get(username)
@@ -270,6 +278,8 @@ def admin_login():
 
 # Functions for Employee login
 def employee_login():
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     username = input("Enter Employee Username: ")
     password = input("Enter Employee Password: ")
     employee = employee_db.get(username)
@@ -282,6 +292,8 @@ def employee_login():
 
 # Functions for Transaction Management
 def deposit_account(user):
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     account_number = int(input("Enter Account Number to Deposit into: "))
     amount = float(input("Enter Deposit Amount: "))
     for account in user.accounts:
@@ -294,6 +306,8 @@ def deposit_account(user):
     print("Account not found.")
 
 def withdraw_account(user):
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     account_number = int(input("Enter Account Number to Withdraw from: "))
     amount = float(input("Enter Withdrawal Amount: "))
     for account in user.accounts:
@@ -306,6 +320,8 @@ def withdraw_account(user):
     print("Account not found.")
 
 def transfer_account(user):
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     from_account_number = int(input("Enter Account Number to Transfer from: "))
     to_account_number = int(input("Enter Account Number to Transfer to: "))
     amount = float(input("Enter Transfer Amount: "))
@@ -326,6 +342,8 @@ def transfer_account(user):
 
 # Functions for User Login
 def user_login():
+    print("\n=== Welcome to the AVS Bank Limited ===")
+    print(BANK_TAGLINE)
     account_number = int(input("Enter Account Number: "))
     password = input("Enter Password: ")
     user = user_db.get(account_number)
@@ -339,6 +357,8 @@ def user_login():
 # Employee Menu
 def employee_menu(employee):
     while True:
+        print("\n=== Welcome to the AVS Bank Limited ===")
+        print(BANK_TAGLINE)
         print("\n=== Employee Menu ===")
         print("1. View User Account Info")
         print("2. Assist with Deposit/Withdrawal")
@@ -379,7 +399,8 @@ def employee_menu(employee):
 # Main Program
 def main():
     while True:
-        print("\n=== Welcome to the Bank ===")
+        print("\n=== Welcome to the AVS Bank Limited ===")
+        print(BANK_TAGLINE)
         print("1. Register as User")
         print("2. Register as Admin")
         print("3. Register as Employee")
