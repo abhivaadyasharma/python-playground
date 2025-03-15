@@ -1,8 +1,20 @@
+import logging
+from datetime import datetime
+
+# Set up logging configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+
+
 class SalesMan:
     def __init__(self, username, password, stock):
         self.username = username
         self.password = password
         self.stock = stock  # Stock is a dictionary of items and their quantities
+        self.sales = {}  # Track sales made (item: quantity sold)
+        self.rough_sheet = []  # Rough Sheet to track products sold (product, quantity, date)
+        self.sales_target = 0  # Sales target for the salesman
+        self.notifications = []  # To keep track of notifications for the salesman
+        self.feedback = []  # To store feedback from customers
 
     def login(self, username, password):
         """Authenticate user login."""
@@ -15,23 +27,89 @@ class SalesMan:
         print("Items available for sale:")
         for item, qty in self.stock.items():
             print(f"{item}: {qty} in stock")
-    
+
     def sell_item(self, item, qty_sold):
-        """Sell an item if enough stock is available."""
+        """Sell an item and track the sale."""
         if item in self.stock and self.stock[item] >= qty_sold:
             self.stock[item] -= qty_sold
-            print(f"Sold {qty_sold} {item}. Remaining stock: {self.stock[item]}")
+            self.sales[item] = self.sales.get(item, 0) + qty_sold
+            # Record the sale in the rough sheet
+            sale_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.rough_sheet.append({'item': item, 'quantity': qty_sold, 'date': sale_date})
+            logging.info(f"Sold {qty_sold} {item} by {self.username}. Remaining stock: {self.stock[item]}")
             return True
-        print("Not enough stock!")
+        logging.error(f"Not enough stock for {item}. Sale failed.")
         return False
+
+    def total_sales(self):
+        """Calculate total sales made by the salesman."""
+        return sum(self.sales.values())
+
+    def calculate_commission(self, commission_rate=0.05):
+        """Calculate commission based on sales."""
+        total_sales = self.total_sales()
+        commission = total_sales * commission_rate
+        print(f"{self.username} earned a commission of {commission} Rs.")
+        return commission
 
     def receive_salary(self, salary):
         """Receive salary after sales."""
         print(f"{self.username} received salary: {salary} Rs")
 
+    def reset_password(self, new_password):
+        """Allow salesmen to reset their password."""
+        self.password = new_password
+        print(f"{self.username}'s password has been updated.")
+
     def receive_notification(self, message):
         """Receive notifications (for sales, updates, etc.)."""
+        self.notifications.append(message)
         print(f"Notification for {self.username}: {message}")
+
+    def view_rough_sheet(self):
+        """View the rough sheet of sales for the salesman."""
+        print(f"Rough Sheet for {self.username}:")
+        if not self.rough_sheet:
+            print("No sales recorded yet.")
+        else:
+            for record in self.rough_sheet:
+                print(f"Item: {record['item']}, Quantity Sold: {record['quantity']}, Date: {record['date']}")
+
+    def set_sales_target(self, target):
+        """Set a sales target for the salesman."""
+        self.sales_target = target
+        print(f"Sales target set to {target} items for {self.username}.")
+
+    def track_sales_target(self):
+        """Track progress towards the sales target."""
+        sold = self.total_sales()
+        if sold >= self.sales_target:
+            print(f"{self.username} has reached the sales target of {self.sales_target} items!")
+        else:
+            print(f"{self.username} has sold {sold}/{self.sales_target} items. Keep going!")
+
+    def collect_feedback(self):
+        """Collect customer feedback on products and sales experience."""
+        product_feedback = input("Enter feedback for the product: ")
+        sales_experience_feedback = input("Enter feedback on the sales experience: ")
+        feedback_entry = {
+            'product_feedback': product_feedback,
+            'sales_experience_feedback': sales_experience_feedback,
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        self.feedback.append(feedback_entry)
+        print("Feedback collected successfully!")
+
+    def view_feedback(self):
+        """View the collected feedback."""
+        print(f"Feedback collected by {self.username}:")
+        if not self.feedback:
+            print("No feedback collected yet.")
+        else:
+            for entry in self.feedback:
+                print(f"Product Feedback: {entry['product_feedback']}")
+                print(f"Sales Experience Feedback: {entry['sales_experience_feedback']}")
+                print(f"Timestamp: {entry['timestamp']}\n")
 
 
 class SalesPersonManager:
@@ -52,17 +130,44 @@ class SalesPersonManager:
         self.items.append({'item_name': item_name, 'quantity': qty})
         print(f"Added item: {item_name} with {qty} units.")
 
+    def update_item(self, item_name, new_qty):
+        """Update the stock quantity for an item."""
+        for item in self.items:
+            if item['item_name'] == item_name:
+                item['quantity'] = new_qty
+                print(f"Updated {item_name} to {new_qty} units.")
+                return
+        print(f"Item {item_name} not found in stock.")
+
+    def remove_item(self, item_name):
+        """Remove an item from stock."""
+        for item in self.items:
+            if item['item_name'] == item_name:
+                self.items.remove(item)
+                print(f"Removed {item_name} from stock.")
+                return
+        print(f"Item {item_name} not found in stock.")
+
     def view_sales(self):
         """View sales report for each salesman."""
         print("Sales report:")
         for salesman in self.sales_men:
-            total_sales = sum(salesman.stock.values())  # Total items sold
-            print(f"{salesman.username}: Sold {total_sales} items.")
-    
+            total_sales = salesman.total_sales()  # Total items sold
+            commission = salesman.calculate_commission()
+            print(f"{salesman.username}: Sold {total_sales} items. Commission: {commission} Rs.")
+
+    def view_performance(self):
+        """View performance of each salesman."""
+        print("Salesman performance:")
+        for salesman in self.sales_men:
+            total_sales = salesman.total_sales()
+            commission = salesman.calculate_commission()
+            print(f"{salesman.username}: Total Sales = {total_sales}, Commission = {commission} Rs.")
+
     def pay_salary(self):
         """Calculate and pay salaries to all salesmen based on sales."""
         for salesman in self.sales_men:
-            total_sales = sum(salesman.stock.values())  # Total items sold
+            total_sales = salesman.total_sales()  # Total items sold
             salary = total_sales * 1000  # 1000 Rs per item sold
             salesman.receive_salary(salary)
             print(f"Paid {salesman.username} {salary} Rs for {total_sales} items sold.")
@@ -72,7 +177,7 @@ class SalesPersonManager:
         salesman = SalesMan(username, password, {})
         self.sales_men.append(salesman)
         print(f"Hired {name} as a salesman.")
-    
+
     def fire_salesman(self, username):
         """Fire an existing salesman."""
         for salesman in self.sales_men:
@@ -87,66 +192,20 @@ class SalesPersonManager:
         for salesman in self.sales_men:
             salesman.receive_notification(message)
 
-
-class DevelopmentTeam:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
-    def login(self, username, password):
-        """Authenticate developer login."""
-        if self.username == username and self.password == password:
-            return True
-        return False
-
-    def send_code(self):
-        """Send code updates to the manager."""
-        print("Sending code to manager...")
-        print("Code sent.")
+    def send_performance_notification(self):
+        """Send a notification about the performance of each salesman."""
+        for salesman in self.sales_men:
+            total_sales = salesman.total_sales()
+            if total_sales > 50:  # Example goal for good performance
+                message = f"Great job, {salesman.username}! You've sold {total_sales} items."
+            else:
+                message = f"Keep pushing, {salesman.username}! You sold {total_sales} items."
+            salesman.receive_notification(message)
 
 
-class CEO:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-        self.sales_managers = []  # List of SalesPersonManager objects
-        self.development_team = []  # List of DevelopmentTeam objects
+# Main execution would be similar as in your original code.
+# You can integrate the feedback feature like this in the main loop:
 
-    def login(self, username, password):
-        """Authenticate CEO login."""
-        if self.username == username and self.password == password:
-            return True
-        return False
-
-    def hire_sales_manager(self, name, username, password):
-        """Hire a new Sales Manager."""
-        manager = SalesPersonManager(username, password)
-        self.sales_managers.append(manager)
-        print(f"Hired {name} as Sales Manager.")
-    
-    def fire_sales_manager(self, username):
-        """Fire an existing Sales Manager."""
-        for manager in self.sales_managers:
-            if manager.username == username:
-                self.sales_managers.remove(manager)
-                print(f"Fired Sales Manager {username}.")
-                return
-        print("Sales Manager not found.")
-    
-    def hire_development_team(self, name, username, password):
-        """Hire a new member for the Development Team."""
-        dev = DevelopmentTeam(username, password)
-        self.development_team.append(dev)
-        print(f"Hired {name} as Development Team member.")
-    
-    def fire_development_team(self, username):
-        """Fire an existing member of the Development Team."""
-        for dev in self.development_team:
-            if dev.username == username:
-                self.development_team.remove(dev)
-                print(f"Fired Development Team member {username}.")
-                return
-        print("Development Team member not found.")
 
 
 def main():
@@ -154,7 +213,7 @@ def main():
     ceo = CEO("ceo_username", "ceo_password")
     manager = SalesPersonManager("manager_username", "manager_password")
     developer = DevelopmentTeam("dev_username", "dev_password")
-    
+
     # Assign manager and developer to CEO
     ceo.sales_managers.append(manager)
     ceo.development_team.append(developer)
@@ -178,6 +237,7 @@ def main():
                     item = input("Enter item to sell: ")
                     qty = int(input("Enter quantity to sell: "))
                     salesman.sell_item(item, qty)
+                    salesman.track_sales_target()
                     break
             else:
                 print("Invalid login!")
@@ -187,7 +247,7 @@ def main():
             password = input("Enter password: ")
             if manager.login(username, password):
                 print("Logged in as Sales Manager.")
-                action = input("1. Add Item\n2. View Sales\n3. Pay Salary\n4. Hire SalesMan\n5. Fire SalesMan\n6. Send Notification\n")
+                action = input("1. Add Item\n2. View Sales\n3. Pay Salary\n4. Hire SalesMan\n5. Fire SalesMan\n6. Send Notification\n7. View Performance\n")
                 if action == '1':
                     item_name = input("Enter item name: ")
                     qty = int(input("Enter quantity: "))
@@ -207,6 +267,8 @@ def main():
                 elif action == '6':
                     message = input("Enter notification message: ")
                     manager.send_notification_to_salesmen(message)
+                elif action == '7':
+                    manager.view_performance()
             else:
                 print("Invalid login!")
 
@@ -224,7 +286,7 @@ def main():
             password = input("Enter password: ")
             if ceo.login(username, password):
                 print("Logged in as CEO.")
-                action = input("1. Hire Sales Manager\n2. Fire Sales Manager\n3. Hire Development Team\n4. Fire Development Team\n")
+                action = input("1. Hire Sales Manager\n2. Fire Sales Manager\n3. Hire Development Team\n4. Fire Development Team\n5. View Company Performance\n")
                 if action == '1':
                     name = input("Enter Sales Manager name: ")
                     username = input("Enter username: ")
@@ -241,6 +303,8 @@ def main():
                 elif action == '4':
                     username = input("Enter Development Team username to fire: ")
                     ceo.fire_development_team(username)
+                elif action == '5':
+                    ceo.view_company_performance()
             else:
                 print("Invalid login!")
 
@@ -249,6 +313,7 @@ def main():
             break
         else:
             print("Invalid choice! Try again.")
+
 
 if __name__ == "__main__":
     main()
