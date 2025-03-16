@@ -1,3 +1,5 @@
+#Author: Abhivaadya Sharma 
+
 import logging
 from datetime import datetime
 
@@ -203,9 +205,70 @@ class SalesPersonManager:
             salesman.receive_notification(message)
 
 
-# Main execution would be similar as in your original code.
-# You can integrate the feedback feature like this in the main loop:
+class CEO:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.sales_managers = []  # List of SalesPersonManagers
+        self.development_team = []  # List of DevelopmentTeam members
 
+    def login(self, username, password):
+        """Authenticate CEO login."""
+        if self.username == username and self.password == password:
+            return True
+        return False
+
+    def hire_sales_manager(self, name, username, password):
+        """Hire a new sales manager."""
+        manager = SalesPersonManager(username, password)
+        self.sales_managers.append(manager)
+        print(f"Hired {name} as a Sales Manager.")
+
+    def fire_sales_manager(self, username):
+        """Fire an existing sales manager."""
+        for manager in self.sales_managers:
+            if manager.username == username:
+                self.sales_managers.remove(manager)
+                print(f"Fired sales manager {username}.")
+                return
+        print("Sales Manager not found.")
+
+    def hire_development_team(self, name, username, password):
+        """Hire a new development team member."""
+        dev = DevelopmentTeam(username, password)
+        self.development_team.append(dev)
+        print(f"Hired {name} as a Development Team member.")
+
+    def fire_development_team(self, username):
+        """Fire an existing development team member."""
+        for dev in self.development_team:
+            if dev.username == username:
+                self.development_team.remove(dev)
+                print(f"Fired development team member {username}.")
+                return
+        print("Development team member not found.")
+
+    def view_company_performance(self):
+        """View overall company performance."""
+        print("Company Performance:")
+        for manager in self.sales_managers:
+            manager.view_performance()
+
+
+class DevelopmentTeam:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    def login(self, username, password):
+        """Authenticate development team login."""
+        if self.username == username and self.password == password:
+            return True
+        return False
+
+    def send_code(self):
+        """Send code to the system."""
+        print("Code has been sent to the system.")
 
 
 def main():
