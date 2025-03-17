@@ -1,4 +1,4 @@
-#Author: Abhivaadya Sharma 
+# Author: Abhivaadya Sharma 
 
 import logging
 from datetime import datetime
@@ -114,7 +114,7 @@ class SalesMan:
                 print(f"Timestamp: {entry['timestamp']}\n")
 
 
-class SalesPersonManager:
+class Manager:
     def __init__(self, username, password):
         self.username = username
         self.password = password
@@ -209,7 +209,7 @@ class CEO:
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.sales_managers = []  # List of SalesPersonManagers
+        self.managers = []  # List of Manager objects
         self.development_team = []  # List of DevelopmentTeam members
 
     def login(self, username, password):
@@ -218,20 +218,20 @@ class CEO:
             return True
         return False
 
-    def hire_sales_manager(self, name, username, password):
+    def hire_manager(self, name, username, password):
         """Hire a new sales manager."""
-        manager = SalesPersonManager(username, password)
-        self.sales_managers.append(manager)
-        print(f"Hired {name} as a Sales Manager.")
+        manager = Manager(username, password)
+        self.managers.append(manager)
+        print(f"Hired {name} as a Manager.")
 
-    def fire_sales_manager(self, username):
+    def fire_manager(self, username):
         """Fire an existing sales manager."""
-        for manager in self.sales_managers:
+        for manager in self.managers:
             if manager.username == username:
-                self.sales_managers.remove(manager)
-                print(f"Fired sales manager {username}.")
+                self.managers.remove(manager)
+                print(f"Fired manager {username}.")
                 return
-        print("Sales Manager not found.")
+        print("Manager not found.")
 
     def hire_development_team(self, name, username, password):
         """Hire a new development team member."""
@@ -251,7 +251,7 @@ class CEO:
     def view_company_performance(self):
         """View overall company performance."""
         print("Company Performance:")
-        for manager in self.sales_managers:
+        for manager in self.managers:
             manager.view_performance()
 
 
@@ -274,11 +274,11 @@ class DevelopmentTeam:
 def main():
     # Initialize app data
     ceo = CEO("ceo_username", "ceo_password")
-    manager = SalesPersonManager("manager_username", "manager_password")
+    manager = Manager("manager_username", "manager_password")
     developer = DevelopmentTeam("dev_username", "dev_password")
 
     # Assign manager and developer to CEO
-    ceo.sales_managers.append(manager)
+    ceo.managers.append(manager)
     ceo.development_team.append(developer)
 
     # Sample SalesMan creation by Manager
@@ -287,7 +287,7 @@ def main():
 
     # User input loop
     while True:
-        print("Login as:\n1. SalesMan\n2. Sales Person Manager\n3. Development Team\n4. CEO\n5. Exit")
+        print("Login as:\n1. SalesMan\n2. Manager\n3. Development Team\n4. CEO\n5. Exit")
         choice = input("Enter your choice: ")
 
         if choice == '1':
@@ -309,7 +309,7 @@ def main():
             username = input("Enter username: ")
             password = input("Enter password: ")
             if manager.login(username, password):
-                print("Logged in as Sales Manager.")
+                print("Logged in as Manager.")
                 action = input("1. Add Item\n2. View Sales\n3. Pay Salary\n4. Hire SalesMan\n5. Fire SalesMan\n6. Send Notification\n7. View Performance\n")
                 if action == '1':
                     item_name = input("Enter item name: ")
@@ -349,15 +349,15 @@ def main():
             password = input("Enter password: ")
             if ceo.login(username, password):
                 print("Logged in as CEO.")
-                action = input("1. Hire Sales Manager\n2. Fire Sales Manager\n3. Hire Development Team\n4. Fire Development Team\n5. View Company Performance\n")
+                action = input("1. Hire Manager\n2. Fire Manager\n3. Hire Development Team\n4. Fire Development Team\n5. View Company Performance\n")
                 if action == '1':
-                    name = input("Enter Sales Manager name: ")
+                    name = input("Enter Manager name: ")
                     username = input("Enter username: ")
                     password = input("Enter password: ")
-                    ceo.hire_sales_manager(name, username, password)
+                    ceo.hire_manager(name, username, password)
                 elif action == '2':
-                    username = input("Enter Sales Manager username to fire: ")
-                    ceo.fire_sales_manager(username)
+                    username = input("Enter Manager username to fire: ")
+                    ceo.fire_manager(username)
                 elif action == '3':
                     name = input("Enter Development Team member name: ")
                     username = input("Enter username: ")
