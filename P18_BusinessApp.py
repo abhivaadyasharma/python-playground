@@ -1,117 +1,175 @@
-# Author: Abhivaadya Sharma 
+# Author: Abhivaadya Sharma
 
 import logging
 from datetime import datetime
+
+class CurrencyConverter:
+    """Class for currency conversion using exchange rates."""
+    
+    exchange_rates = {
+        'INR': 1,  # Base currency is INR (Indian Rupee)
+        'USD': 74.0,
+        'EUR': 88.0,
+        'GBP': 100.0,
+        'AUD': 55.0
+    }
+    
+    @staticmethod
+    def convert(amount, from_currency, to_currency):
+        """Convert amount from one currency to another."""
+        if from_currency == to_currency:
+            return amount
+        # Convert the amount to INR first, then convert to the target currency
+        amount_in_inr = amount * CurrencyConverter.exchange_rates[from_currency]
+        return amount_in_inr / CurrencyConverter.exchange_rates[to_currency]
+
+class CEO:
+    def add_product(self, product_name, cost_price, selling_price, category=None, region=None, currency='INR'):
+        """Add a product to the catalog with cost and selling prices."""
+        self.products[product_name] = {
+            'cost_price': cost_price,
+            'selling_price': selling_price,
+            'category': category,
+            'region': region,
+            'currency': currency
+        }
+        print(f"Added product {product_name} with cost: {cost_price} {currency} and selling price: {selling_price} {currency}.")
+
+    def profitability_analysis(self, by='product', currency='INR'):
+        """Analyze profitability by product, category, or region."""
+        if by == 'product':
+            print("Profitability Analysis by Product:")
+            for product_name, details in self.products.items():
+                # Convert to the required currency
+                cost_price = CurrencyConverter.convert(details['cost_price'], details['currency'], currency)
+                selling_price = CurrencyConverter.convert(details['selling_price'], details['currency'], currency)
+                
+                profit = selling_price - cost_price
+                profit_margin = (profit / selling_price) * 100
+                print(f"{product_name} - Profit: {profit:.2f} {currency}, Profit Margin: {profit_margin:.2f}%")
+
 
 # Set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 
-class SalesMan:
-    def __init__(self, username, password, stock):
+class DevelopmentTeam:
+    def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.stock = stock  # Stock is a dictionary of items and their quantities
-        self.sales = {}  # Track sales made (item: quantity sold)
-        self.rough_sheet = []  # Rough Sheet to track products sold (product, quantity, date)
-        self.sales_target = 0  # Sales target for the salesman
-        self.notifications = []  # To keep track of notifications for the salesman
-        self.feedback = []  # To store feedback from customers
 
     def login(self, username, password):
-        """Authenticate user login."""
+        """Authenticate development team login."""
         if self.username == username and self.password == password:
             return True
         return False
 
-    def view_items(self):
-        """View available items for sale."""
-        print("Items available for sale:")
-        for item, qty in self.stock.items():
-            print(f"{item}: {qty} in stock")
+    def send_code(self):
+        """Send code to the system."""
+        print("Code has been sent to the system.")
 
-    def sell_item(self, item, qty_sold):
-        """Sell an item and track the sale."""
-        if item in self.stock and self.stock[item] >= qty_sold:
-            self.stock[item] -= qty_sold
-            self.sales[item] = self.sales.get(item, 0) + qty_sold
-            # Record the sale in the rough sheet
-            sale_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            self.rough_sheet.append({'item': item, 'quantity': qty_sold, 'date': sale_date})
-            logging.info(f"Sold {qty_sold} {item} by {self.username}. Remaining stock: {self.stock[item]}")
+
+class CEO:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.managers = []  # List of Manager objects
+        self.development_team = []  # List of DevelopmentTeam members
+        self.products = {}  # Product catalog with cost price and selling price
+
+    def login(self, username, password):
+        """Authenticate CEO login."""
+        if self.username == username and self.password == password:
             return True
-        logging.error(f"Not enough stock for {item}. Sale failed.")
         return False
 
-    def total_sales(self):
-        """Calculate total sales made by the salesman."""
-        return sum(self.sales.values())
+    def hire_manager(self, name, username, password):
+        """Hire a new sales manager."""
+        manager = Manager(username, password)
+        self.managers.append(manager)
+        print(f"Hired {name} as a Manager.")
 
-    def calculate_commission(self, commission_rate=0.05):
-        """Calculate commission based on sales."""
-        total_sales = self.total_sales()
-        commission = total_sales * commission_rate
-        print(f"{self.username} earned a commission of {commission} Rs.")
-        return commission
+    def fire_manager(self, username):
+        """Fire an existing sales manager."""
+        for manager in self.managers:
+            if manager.username == username:
+                self.managers.remove(manager)
+                print(f"Fired manager {username}.")
+                return
+        print("Manager not found.")
 
-    def receive_salary(self, salary):
-        """Receive salary after sales."""
-        print(f"{self.username} received salary: {salary} Rs")
+    def hire_development_team(self, name, username, password):
+        """Hire a new development team member."""
+        dev = DevelopmentTeam(username, password)
+        self.development_team.append(dev)
+        print(f"Hired {name} as a Development Team member.")
 
-    def reset_password(self, new_password):
-        """Allow salesmen to reset their password."""
-        self.password = new_password
-        print(f"{self.username}'s password has been updated.")
+    def fire_development_team(self, username):
+        """Fire an existing development team member."""
+        for dev in self.development_team:
+            if dev.username == username:
+                self.development_team.remove(dev)
+                print(f"Fired development team member {username}.")
+                return
+        print("Development team member not found.")
 
-    def receive_notification(self, message):
-        """Receive notifications (for sales, updates, etc.)."""
-        self.notifications.append(message)
-        print(f"Notification for {self.username}: {message}")
+    def view_company_performance(self):
+        """View overall company performance."""
+        print("Company Performance:")
+        for manager in self.managers:
+            manager.view_performance()
 
-    def view_rough_sheet(self):
-        """View the rough sheet of sales for the salesman."""
-        print(f"Rough Sheet for {self.username}:")
-        if not self.rough_sheet:
-            print("No sales recorded yet.")
-        else:
-            for record in self.rough_sheet:
-                print(f"Item: {record['item']}, Quantity Sold: {record['quantity']}, Date: {record['date']}")
-
-    def set_sales_target(self, target):
-        """Set a sales target for the salesman."""
-        self.sales_target = target
-        print(f"Sales target set to {target} items for {self.username}.")
-
-    def track_sales_target(self):
-        """Track progress towards the sales target."""
-        sold = self.total_sales()
-        if sold >= self.sales_target:
-            print(f"{self.username} has reached the sales target of {self.sales_target} items!")
-        else:
-            print(f"{self.username} has sold {sold}/{self.sales_target} items. Keep going!")
-
-    def collect_feedback(self):
-        """Collect customer feedback on products and sales experience."""
-        product_feedback = input("Enter feedback for the product: ")
-        sales_experience_feedback = input("Enter feedback on the sales experience: ")
-        feedback_entry = {
-            'product_feedback': product_feedback,
-            'sales_experience_feedback': sales_experience_feedback,
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    def add_product(self, product_name, cost_price, selling_price, category=None, region=None):
+        """Add a product to the catalog with cost and selling prices."""
+        self.products[product_name] = {
+            'cost_price': cost_price,
+            'selling_price': selling_price,
+            'category': category,
+            'region': region
         }
-        self.feedback.append(feedback_entry)
-        print("Feedback collected successfully!")
+        print(f"Added product {product_name} with cost: {cost_price} Rs and selling price: {selling_price} Rs.")
 
-    def view_feedback(self):
-        """View the collected feedback."""
-        print(f"Feedback collected by {self.username}:")
-        if not self.feedback:
-            print("No feedback collected yet.")
+    def profitability_analysis(self, by='product'):
+        """Analyze profitability by product, category, or region."""
+        if by == 'product':
+            print("Profitability Analysis by Product:")
+            for product_name, details in self.products.items():
+                profit = details['selling_price'] - details['cost_price']
+                profit_margin = (profit / details['selling_price']) * 100
+                print(f"{product_name} - Profit: {profit} Rs, Profit Margin: {profit_margin:.2f}%")
+        
+        elif by == 'category':
+            print("Profitability Analysis by Category:")
+            categories = {}
+            for product_name, details in self.products.items():
+                category = details['category']
+                if category not in categories:
+                    categories[category] = []
+                profit = details['selling_price'] - details['cost_price']
+                categories[category].append(profit)
+
+            for category, profits in categories.items():
+                total_profit = sum(profits)
+                average_profit_margin = (total_profit / len(profits)) / self.products[product_name]['selling_price'] * 100
+                print(f"Category: {category} - Total Profit: {total_profit} Rs, Average Profit Margin: {average_profit_margin:.2f}%")
+
+        elif by == 'region':
+            print("Profitability Analysis by Region:")
+            regions = {}
+            for product_name, details in self.products.items():
+                region = details['region']
+                if region not in regions:
+                    regions[region] = []
+                profit = details['selling_price'] - details['cost_price']
+                regions[region].append(profit)
+
+            for region, profits in regions.items():
+                total_profit = sum(profits)
+                average_profit_margin = (total_profit / len(profits)) / self.products[product_name]['selling_price'] * 100
+                print(f"Region: {region} - Total Profit: {total_profit} Rs, Average Profit Margin: {average_profit_margin:.2f}%")
+        
         else:
-            for entry in self.feedback:
-                print(f"Product Feedback: {entry['product_feedback']}")
-                print(f"Sales Experience Feedback: {entry['sales_experience_feedback']}")
-                print(f"Timestamp: {entry['timestamp']}\n")
+            print("Invalid option for profitability analysis. Please choose 'product', 'category', or 'region'.")
 
 
 class Manager:
@@ -204,71 +262,145 @@ class Manager:
                 message = f"Keep pushing, {salesman.username}! You sold {total_sales} items."
             salesman.receive_notification(message)
 
+    def view_team_leaderboard(self):
+        """Display leaderboard showing sales performance by salesman."""
+        leaderboard = []
+        for salesman in self.sales_men:
+            total_sales = salesman.total_sales()
+            commission = salesman.calculate_commission()
+            leaderboard.append({
+                'username': salesman.username,
+                'total_sales': total_sales,
+                'commission': commission
+            })
 
-class CEO:
-    def __init__(self, username, password):
+        # Sort the leaderboard by total sales (descending)
+        leaderboard.sort(key=lambda x: x['total_sales'], reverse=True)
+
+        print("Team Leaderboard:")
+        for index, entry in enumerate(leaderboard, start=1):
+            print(f"{index}. {entry['username']} - Sold: {entry['total_sales']} items, Commission: {entry['commission']} Rs.")
+
+
+class SalesMan:
+    def __init__(self, username, password, stock):
         self.username = username
         self.password = password
-        self.managers = []  # List of Manager objects
-        self.development_team = []  # List of DevelopmentTeam members
+        self.stock = stock  # Stock is a dictionary of items and their quantities
+        self.sales = {}  # Track sales made (item: quantity sold)
+        self.rough_sheet = []  # Rough Sheet to track products sold (product, quantity, date)
+        self.sales_target = 0  # Sales target for the salesman
+        self.notifications = []  # To keep track of notifications for the salesman
+        self.feedback = []  # To store feedback from customers
 
     def login(self, username, password):
-        """Authenticate CEO login."""
+        """Authenticate user login."""
         if self.username == username and self.password == password:
             return True
         return False
 
-    def hire_manager(self, name, username, password):
-        """Hire a new sales manager."""
-        manager = Manager(username, password)
-        self.managers.append(manager)
-        print(f"Hired {name} as a Manager.")
+    def view_items(self):
+        """View available items for sale."""
+        print("Items available for sale:")
+        for item, qty in self.stock.items():
+            print(f"{item}: {qty} in stock")
 
-    def fire_manager(self, username):
-        """Fire an existing sales manager."""
-        for manager in self.managers:
-            if manager.username == username:
-                self.managers.remove(manager)
-                print(f"Fired manager {username}.")
-                return
-        print("Manager not found.")
-
-    def hire_development_team(self, name, username, password):
-        """Hire a new development team member."""
-        dev = DevelopmentTeam(username, password)
-        self.development_team.append(dev)
-        print(f"Hired {name} as a Development Team member.")
-
-    def fire_development_team(self, username):
-        """Fire an existing development team member."""
-        for dev in self.development_team:
-            if dev.username == username:
-                self.development_team.remove(dev)
-                print(f"Fired development team member {username}.")
-                return
-        print("Development team member not found.")
-
-    def view_company_performance(self):
-        """View overall company performance."""
-        print("Company Performance:")
-        for manager in self.managers:
-            manager.view_performance()
-
-
-class DevelopmentTeam:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
-    def login(self, username, password):
-        """Authenticate development team login."""
-        if self.username == username and self.password == password:
+    def sell_item(self, item, qty_sold):
+        """Sell an item and track the sale."""
+        if item in self.stock and self.stock[item] >= qty_sold:
+            self.stock[item] -= qty_sold
+            self.sales[item] = self.sales.get(item, 0) + qty_sold
+            # Record the sale in the rough sheet
+            sale_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.rough_sheet.append({'item': item, 'quantity': qty_sold, 'date': sale_date})
+            logging.info(f"Sold {qty_sold} {item} by {self.username}. Remaining stock: {self.stock[item]}")
             return True
+        logging.error(f"Not enough stock for {item}. Sale failed.")
         return False
 
-    def send_code(self):
-        """Send code to the system."""
-        print("Code has been sent to the system.")
+    def return_item(self, item, qty_returned):
+        """Handle product returns and update stock."""
+        if item in self.sales and self.sales[item] >= qty_returned:
+            self.sales[item] -= qty_returned
+            self.stock[item] += qty_returned
+            # Record the return in the rough sheet
+            return_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.rough_sheet.append({'item': item, 'quantity': -qty_returned, 'date': return_date})
+            logging.info(f"Returned {qty_returned} {item} by {self.username}. Updated stock: {self.stock[item]}")
+            return True
+        logging.error(f"Return failed: Not enough items sold or invalid product.")
+        return False
+
+    def total_sales(self):
+        """Calculate total sales made by the salesman."""
+        return sum(self.sales.values())
+
+    def calculate_commission(self, commission_rate=0.05):
+        """Calculate commission based on sales."""
+        total_sales = self.total_sales()
+        commission = total_sales * commission_rate
+        print(f"{self.username} earned a commission of {commission} Rs.")
+        return commission
+
+    def receive_salary(self, salary):
+        """Receive salary after sales."""
+        print(f"{self.username} received salary: {salary} Rs")
+
+    def reset_password(self, new_password):
+        """Allow salesmen to reset their password."""
+        self.password = new_password
+        print(f"{self.username}'s password has been updated.")
+
+    def receive_notification(self, message):
+        """Receive notifications (for sales, updates, etc.)."""
+        self.notifications.append(message)
+        print(f"Notification for {self.username}: {message}")
+
+    def view_rough_sheet(self):
+        """View the rough sheet of sales for the salesman."""
+        print(f"Rough Sheet for {self.username}:")
+        if not self.rough_sheet:
+            print("No sales or returns recorded yet.")
+        else:
+            for record in self.rough_sheet:
+                action = "Sold" if record['quantity'] > 0 else "Returned"
+                print(f"{action} {abs(record['quantity'])} {record['item']} on {record['date']}")
+
+    def set_sales_target(self, target):
+        """Set a sales target for the salesman."""
+        self.sales_target = target
+        print(f"Sales target set to {target} items for {self.username}.")
+
+    def track_sales_target(self):
+        """Track progress towards the sales target."""
+        sold = self.total_sales()
+        if sold >= self.sales_target:
+            print(f"{self.username} has reached the sales target of {self.sales_target} items!")
+        else:
+            print(f"{self.username} has sold {sold}/{self.sales_target} items. Keep going!")
+
+    def collect_feedback(self):
+        """Collect customer feedback on products and sales experience."""
+        product_feedback = input("Enter feedback for the product: ")
+        sales_experience_feedback = input("Enter feedback on the sales experience: ")
+        feedback_entry = {
+            'product_feedback': product_feedback,
+            'sales_experience_feedback': sales_experience_feedback,
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        self.feedback.append(feedback_entry)
+        print("Feedback collected successfully!")
+
+    def view_feedback(self):
+        """View the collected feedback."""
+        print(f"Feedback collected by {self.username}:")
+        if not self.feedback:
+            print("No feedback collected yet.")
+        else:
+            for entry in self.feedback:
+                print(f"Product Feedback: {entry['product_feedback']}")
+                print(f"Sales Experience Feedback: {entry['sales_experience_feedback']}")
+                print(f"Timestamp: {entry['timestamp']}\n")
 
 
 def main():
@@ -349,33 +481,15 @@ def main():
             password = input("Enter password: ")
             if ceo.login(username, password):
                 print("Logged in as CEO.")
-                action = input("1. Hire Manager\n2. Fire Manager\n3. Hire Development Team\n4. Fire Development Team\n5. View Company Performance\n")
-                if action == '1':
-                    name = input("Enter Manager name: ")
-                    username = input("Enter username: ")
-                    password = input("Enter password: ")
-                    ceo.hire_manager(name, username, password)
-                elif action == '2':
-                    username = input("Enter Manager username to fire: ")
-                    ceo.fire_manager(username)
-                elif action == '3':
-                    name = input("Enter Development Team member name: ")
-                    username = input("Enter username: ")
-                    password = input("Enter password: ")
-                    ceo.hire_development_team(name, username, password)
-                elif action == '4':
-                    username = input("Enter Development Team username to fire: ")
-                    ceo.fire_development_team(username)
-                elif action == '5':
-                    ceo.view_company_performance()
+                ceo.view_company_performance()
             else:
                 print("Invalid login!")
 
         elif choice == '5':
-            print("Exiting the app.")
+            print("Exiting...")
             break
         else:
-            print("Invalid choice! Try again.")
+            print("Invalid choice!")
 
 
 if __name__ == "__main__":
