@@ -487,10 +487,12 @@ def main():
 
         elif choice == '5':
             print("Exiting...")
+            print("Have a good day!")
             break
         else:
             print("Invalid choice!")
 
-
+# Run the program
 if __name__ == "__main__":
     main()
+    
