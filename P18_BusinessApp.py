@@ -557,6 +557,9 @@ def main():
             print ("Have a good day!")
             break
 
+        else:
+            print ("Invalid choice!!!")
+
 # Run the program
 if __name__ == "__main__":
     main()
