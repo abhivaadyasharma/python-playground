@@ -52,6 +52,52 @@ class CEO:
 # Set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
+# Chatbot class
+class Chatbot:
+    """Simple Chatbot for customer queries and support."""
+    
+    def __init__(self):
+        self.responses = {
+            "what is your name": "I am your friendly support bot.",
+            "how can I contact support": "You can contact support via email at support@yahoo.com.",
+            "what products do you offer": "We offer a wide range of products including electronics, home appliances, and more.",
+            "how do I return a product": "You can return a product by visiting our Returns page or contacting our customer support.",
+            "what is the currency conversion rate": "The current exchange rates are:\n1 USD = 74 INR, 1 EUR = 88 INR, etc.",
+            "how can I track my order": "Please enter your order ID on our tracking page to check the status of your order."
+        }
+
+        # Sample order status for tracking
+        self.order_status = {
+            "12345": "Shipped - Expected delivery: 3 days",
+            "67890": "Processing - Expected shipment: 1 day",
+            "11223": "Delivered - Order completed on 2025-03-17",
+            "44556": "Cancelled - Order was cancelled due to payment issues"
+        }
+
+    def respond(self, query):
+        """Generate a response based on the customer query."""
+        query = query.lower()
+        
+        # Check if the query is about order tracking
+        if "track my order" in query or "order status" in query:
+            order_id = self.extract_order_id(query)
+            if order_id and order_id in self.order_status:
+                return f"Order {order_id} status: {self.order_status[order_id]}"
+            return "Sorry, I couldn't find an order with that ID. Please check the ID and try again."
+
+        # Handle other queries
+        for keyword, response in self.responses.items():
+            if keyword in query:
+                return response
+        return "Sorry, I didn't understand that. Could you please clarify?"
+
+    def extract_order_id(self, query):
+        """Extract order ID from the query (assuming format like 'order ID 12345')."""
+        words = query.split()
+        for word in words:
+            if word.isdigit() and len(word) == 5:  # Assuming order IDs are 5 digits
+                return word
+        return None
 
 class DevelopmentTeam:
     def __init__(self, username, password):
@@ -178,6 +224,16 @@ class Manager:
         self.password = password
         self.sales_men = []  # List of SalesMan objects
         self.items = []  # Items in stock to add/manage
+
+    
+    def set_sales_goal(self, username, goal):
+        """Set a sales goal for a specific salesman."""
+        for salesman in self.sales_men:
+            if salesman.username == username:
+                salesman.set_goal(goal)
+                print(f"Set sales goal of {goal} items for {username}.")
+                return
+        print(f"Salesman {username} not found.")
 
     def login(self, username, password):
         """Authenticate manager login."""
@@ -408,6 +464,7 @@ def main():
     ceo = CEO("ceo_username", "ceo_password")
     manager = Manager("manager_username", "manager_password")
     developer = DevelopmentTeam("dev_username", "dev_password")
+    chatbot = Chatbot()  # Initialize chatbot instance
 
     # Assign manager and developer to CEO
     ceo.managers.append(manager)
@@ -419,7 +476,7 @@ def main():
 
     # User input loop
     while True:
-        print("Login as:\n1. SalesMan\n2. Manager\n3. Development Team\n4. CEO\n5. Exit")
+        print("\nLogin as:\n1. SalesMan\n2. Manager\n3. Development Team\n4. CEO\n5. Chatbot (Customer Support)\n6. Exit")
         choice = input("Enter your choice: ")
 
         if choice == '1':
@@ -485,14 +542,21 @@ def main():
             else:
                 print("Invalid login!")
 
-        elif choice == '5':
+        elif choice == '5':  # Customer Support / Chatbot
+            print("\nWelcome to our Customer Support Chatbot!")
+            while True:
+                customer_query = input("Ask me something (type 'exit' to end): ")
+                if customer_query.lower() == 'exit':
+                    print("Thank you for using the chatbot. Have a great day!")
+                    break
+                response = chatbot.respond(customer_query)  # Process query in chatbot
+                print(response)
+
+        elif choice == '6':
             print("Exiting...")
-            print("Have a good day!")
+            print ("Have a good day!")
             break
-        else:
-            print("Invalid choice!")
 
 # Run the program
 if __name__ == "__main__":
     main()
-    
