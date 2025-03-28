@@ -509,9 +509,9 @@ def main():
         elif choice == "6":
             employee = employee_login()
             if employee:
-                employee_menu(employee)
+                employee_menu(employee)       
         elif choice == "7":
-            print("Exiting the bank system...")
+            print("Exiting the bank system...")    
             break
         else:
             print("Invalid option.")
