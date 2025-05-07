@@ -54,6 +54,7 @@ def get_directory_choice():
     print("2. Downloads")
     print("3. Documents")
     print("4. Custom directory")
+    print("5. Exit")
 
     choice = input("Enter your choice (1-4): ")
     user_directory = ""

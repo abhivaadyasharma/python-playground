@@ -26,6 +26,10 @@ def amortized_loan(principal, rate, time):
     total_interest = total_payment - principal
     return monthly_payment, total_interest, total_payment
 
+# Function to format currency values
+def format_currency(amount):
+    return f"₹{amount:,.2f}"
+
 # Main function to get input and display the results
 def loan_calculator():
     while True:  # Loop to keep asking for input
@@ -54,7 +58,7 @@ def loan_calculator():
             if rate < 0:
                 print("Interest rate cannot be negative.")
                 continue
-            time = float(input("Enter the time period in years: "))
+            time = int(input("Enter the time period in years: "))  # Ensure the time is an integer
             if time <= 0:
                 print("Time period must be greater than zero.")
                 continue
@@ -64,34 +68,48 @@ def loan_calculator():
 
         if choice == 1:
             interest, total_amount = simple_interest(principal, rate, time)
-            print(f"Simple Interest: ₹{interest:.2f}")
-            print(f"Total Amount to be paid: ₹{total_amount:.2f}")
+            print(f"Simple Interest: {format_currency(interest)}")
+            print(f"Total Amount to be paid: {format_currency(total_amount)}")
 
         elif choice == 2:
+            print("\nChoose compounding frequency:")
+            print("1. Annually")
+            print("2. Semi-Annually")
+            print("3. Quarterly")
+            print("4. Monthly")
             try:
-                compounding_frequency = int(input("Enter the number of times interest is compounded per year (e.g., 1 for yearly, 12 for monthly): "))
-                if compounding_frequency <= 0:
-                    print("Compounding frequency must be greater than zero.")
-                    continue
+                compounding_choice = int(input("Enter your choice for compounding frequency: "))
+                if compounding_choice == 1:
+                    compounding_frequency = 1
+                elif compounding_choice == 2:
+                    compounding_frequency = 2
+                elif compounding_choice == 3:
+                    compounding_frequency = 4
+                elif compounding_choice == 4:
+                    compounding_frequency = 12
+                else:
+                    print("Invalid choice! Defaulting to annual compounding.")
+                    compounding_frequency = 1
             except ValueError:
-                print("Please enter a valid number for compounding frequency.")
-                continue
+                print("Invalid choice! Defaulting to annual compounding.")
+                compounding_frequency = 1
+
             interest, total_amount = compound_interest(principal, rate, time, compounding_frequency)
-            print(f"Compound Interest: ₹{interest:.2f}")
-            print(f"Total Amount to be paid: ₹{total_amount:.2f}")
+            print(f"Compound Interest: {format_currency(interest)}")
+            print(f"Total Amount to be paid: {format_currency(total_amount)}")
 
         elif choice == 3:
             monthly_payment, total_interest, total_payment = amortized_loan(principal, rate, time)
-            print(f"Monthly Payment: ₹{monthly_payment:.2f}")
-            print(f"Total Interest Paid: ₹{total_interest:.2f}")
-            print(f"Total Payment: ₹{total_payment:.2f}")
+            print(f"Monthly Payment: {format_currency(monthly_payment)}")
+            print(f"Total Interest Paid: {format_currency(total_interest)}")
+            print(f"Total Payment: {format_currency(total_payment)}")
 
         else:
             print("Invalid choice! Please select a valid loan type.")
         
         # Ask the user if they want to continue or exit after each calculation
-        continue_choice = input("Do you want to perform another calculation? (y/n): ").lower()
-        if continue_choice != 'y':
+        continue_choice = input("\nDo you want to perform another calculation? Type 'exit' to quit or press any key to continue: ").lower()
+        if continue_choice == 'exit':
             print("Exiting the program. Goodbye!")
             break
 

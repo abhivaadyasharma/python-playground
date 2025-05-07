@@ -442,7 +442,7 @@ def main():
 
         elif choice == '3':
             print("Exiting system.")
-            break
+            break 
         
         else:
             print("Invalid choice. Please try again.")
