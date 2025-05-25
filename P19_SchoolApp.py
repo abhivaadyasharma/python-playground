@@ -1,229 +1,244 @@
+import sqlite3
 import csv
-import os
 
-# ==== FILE PATHS ====
-STUDENT_FILE = "students.csv"
-TEACHER_FILE = "teachers.csv"
-NOTIFY_FILE = "notifications.csv"
-MARKS_FILE = "marks.csv"
+DB_NAME = 'students.db'
 
-# ==== HELPERS ====
-def ensure_files():
-    for f, headers in [
-        (STUDENT_FILE, ["username", "password", "name", "class", "section", "roll_no",
-                        "father_name", "father_phone", "mother_name", "mother_phone", "email"]),
-        (TEACHER_FILE, ["username", "password", "name", "email", "phone", "subject"]),
-        (NOTIFY_FILE, ["to_student", "message"]),
-        (MARKS_FILE, ["student", "exam", "marks"])
-    ]:
-        if not os.path.exists(f):
-            with open(f, "w", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow(headers)
+# ---------------------- Database Setup ----------------------
+def init_db():
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS students (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                student_class TEXT NOT NULL,
+                father_name TEXT NOT NULL,
+                father_phone TEXT NOT NULL,
+                marks INTEGER DEFAULT 0
+            )
+        ''')
+        conn.commit()
 
-def read_csv(filename):
-    with open(filename, "r", newline="") as file:
-        return list(csv.DictReader(file))
+# ---------------------- Core Operations ----------------------
+def add_student():
+    name = input("👤 Enter student's name: ").strip()
+    student_class = input("🏫 Enter class: ").strip()
+    father_name = input("👨 Enter father's name: ").strip()
+    father_phone = input("📞 Enter father's phone number: ").strip()
 
-def write_csv(filename, rows, fieldnames):
-    with open(filename, "w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
+    if not (name and student_class and father_name and father_phone):
+        print("❌ All fields are required.")
+        return
 
-def append_csv(filename, row):
-    file_exists = os.path.exists(filename)
-    with open(filename, "a", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=row.keys())
-        if not file_exists or os.stat(filename).st_size == 0:
-            writer.writeheader()
-        writer.writerow(row)
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO students (name, student_class, father_name, father_phone) VALUES (?, ?, ?, ?)",
+            (name, student_class, father_name, father_phone)
+        )
+        conn.commit()
+        print("✅ Student added successfully!\n")
 
-# ==== CORE CLASSES ====
-class Student:
-    def __init__(self, username):
-        self.username = username
+def view_students():
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM students")
+        rows = cur.fetchall()
 
-    def get_info(self):
-        for s in read_csv(STUDENT_FILE):
-            if s["username"] == self.username:
-                return s
-        return {}
-
-    def first_time_info(self):
-        info = self.get_info()
-        updated = {
-            "username": self.username,
-            "password": info["password"],
-            "name": input("Name: "),
-            "class": input("Class: "),
-            "section": input("Section: "),
-            "roll_no": input("Roll no.: "),
-            "father_name": input("Father's Name: "),
-            "father_phone": input("Father's Phone: "),
-            "mother_name": input("Mother's Name: "),
-            "mother_phone": input("Mother's Phone: "),
-            "email": input("Email: ")
-        }
-        students = read_csv(STUDENT_FILE)
-        for s in students:
-            if s["username"] == self.username:
-                s.update(updated)
-        write_csv(STUDENT_FILE, students, students[0].keys())
-        print("Info updated!")
-
-    def update_info(self):
-        info = self.get_info()
-        for key in info:
-            if key in ["username", "password"]:
-                continue
-            new_val = input(f"{key} (leave blank to keep '{info[key]}'): ")
-            if new_val:
-                info[key] = new_val
-        students = read_csv(STUDENT_FILE)
-        for s in students:
-            if s["username"] == self.username:
-                s.update(info)
-        write_csv(STUDENT_FILE, students, students[0].keys())
-        print("Info updated!")
-
-    def view_notifications(self):
-        notes = [n["message"] for n in read_csv(NOTIFY_FILE) if n["to_student"] == self.username]
-        if not notes:
-            print("No notifications.")
-        else:
-            for note in notes:
-                print("->", note)
-
-    def view_marks(self):
-        exam = input("Exam (Unit-Test:1 / Unit-Test:2 / Mid-Term / Annual): ")
-        found = False
-        for m in read_csv(MARKS_FILE):
-            if m["student"] == self.username and m["exam"] == exam:
-                print(f"{exam} Marks: {m['marks']}")
-                found = True
-        if not found:
-            print("No marks found for this exam.")
-
-    def view_teachers(self):
-        for t in read_csv(TEACHER_FILE):
-            print(f"{t['name']} - Email: {t['email']} - Phone: {t['phone']}")
-
-class Teacher:
-    def __init__(self, username):
-        self.username = username
-
-    def get_info(self):
-        for t in read_csv(TEACHER_FILE):
-            if t["username"] == self.username:
-                return t
-        return {}
-
-    def first_time_info(self):
-        info = self.get_info()
-        updated = {
-            "username": self.username,
-            "password": info["password"],
-            "name": input("Name: "),
-            "email": input("Email: "),
-            "phone": input("Phone: "),
-            "subject": input("Subject: ")
-        }
-        teachers = read_csv(TEACHER_FILE)
-        for t in teachers:
-            if t["username"] == self.username:
-                t.update(updated)
-        write_csv(TEACHER_FILE, teachers, teachers[0].keys())
-        print("Info updated!")
-
-    def update_info(self):
-        info = self.get_info()
-        for key in info:
-            if key in ["username", "password"]:
-                continue
-            new_val = input(f"{key} (leave blank to keep '{info[key]}'): ")
-            if new_val:
-                info[key] = new_val
-        teachers = read_csv(TEACHER_FILE)
-        for t in teachers:
-            if t["username"] == self.username:
-                t.update(info)
-        write_csv(TEACHER_FILE, teachers, teachers[0].keys())
-        print("Info updated!")
-
-    def send_notification(self):
-        student = input("Enter student username: ")
-        append_csv(NOTIFY_FILE, {"to_student": student, "message": input("Enter message: ")})
-        print("Notification sent.")
-
-    def add_marks(self):
-        student = input("Enter student username: ")
-        exam = input("Exam: ")
-        marks = input("Marks: ")
-        append_csv(MARKS_FILE, {"student": student, "exam": exam, "marks": marks})
-        print("Marks recorded.")
-
-    def view_students_info(self):
-        for s in read_csv(STUDENT_FILE):
-            print(f"{s['name']} - Email: {s['email']}, Father: {s['father_phone']}, Mother: {s['mother_phone']}")
-
-# ==== AUTH ====
-def register(role):
-    username = input("Choose a username: ")
-    password = input("Choose a password: ")
-    if role == "student":
-        append_csv(STUDENT_FILE, {"username": username, "password": password})
+    if rows:
+        print("\n📋 Student List:")
+        print(f"{'ID':<5} {'Name':<20} {'Class':<10} {'Father Name':<20} {'Father Phone':<15} {'Marks':<6}")
+        print("-" * 85)
+        for row in rows:
+            print(f"{row[0]:<5} {row[1]:<20} {row[2]:<10} {row[3]:<20} {row[4]:<15} {row[5]:<6}")
     else:
-        append_csv(TEACHER_FILE, {"username": username, "password": password})
-    print(f"{role.title()} registered.")
+        print("⚠️ No students found.\n")
 
-def login(role):
-    username = input("Username: ")
-    password = input("Password: ")
-    records = read_csv(STUDENT_FILE if role == "student" else TEACHER_FILE)
-    for r in records:
-        if r["username"] == username and r["password"] == password:
-            print("Login successful.")
-            if role == "student":
-                user = Student(username)
-                if not user.get_info().get("name"):
-                    user.first_time_info()
-                while True:
-                    print("\n1. Update Info\n2. View Notifications\n3. View Marks\n4. View Teachers\n5. Logout")
-                    ch = input("Choose: ")
-                    if ch == "1": user.update_info()
-                    elif ch == "2": user.view_notifications()
-                    elif ch == "3": user.view_marks()
-                    elif ch == "4": user.view_teachers()
-                    elif ch == "5": break
-            else:
-                user = Teacher(username)
-                if not user.get_info().get("name"):
-                    user.first_time_info()
-                while True:
-                    print("\n1. Update Info\n2. Send Notification\n3. Add Marks\n4. View Student Info\n5. Logout")
-                    ch = input("Choose: ")
-                    if ch == "1": user.update_info()
-                    elif ch == "2": user.send_notification()
-                    elif ch == "3": user.add_marks()
-                    elif ch == "4": user.view_students_info()
-                    elif ch == "5": break
+def update_student():
+    try:
+        sid = int(input("🔁 Enter student ID to update: "))
+    except ValueError:
+        print("❌ Invalid ID.")
+        return
+
+    name = input("👤 New name: ").strip()
+    student_class = input("🏫 New class: ").strip()
+    father_name = input("👨 New father's name: ").strip()
+    father_phone = input("📞 New father's phone number: ").strip()
+
+    if not (name and student_class and father_name and father_phone):
+        print("❌ All fields are required.")
+        return
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE students SET name=?, student_class=?, father_name=?, father_phone=? WHERE id=?",
+            (name, student_class, father_name, father_phone, sid)
+        )
+        if cur.rowcount == 0:
+            print("⚠️ No student found with that ID.\n")
+        else:
+            conn.commit()
+            print("✅ Student updated successfully!\n")
+
+def delete_student():
+    try:
+        sid = int(input("🗑️ Enter student ID to delete: "))
+    except ValueError:
+        print("❌ Invalid ID.")
+        return
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM students WHERE id=?", (sid,))
+        if cur.rowcount == 0:
+            print("⚠️ No student found with that ID.\n")
+        else:
+            conn.commit()
+            print("🗑️ Student deleted successfully!\n")
+
+# ---------------------- Marks Operations ----------------------
+def add_update_marks():
+    try:
+        sid = int(input("🔢 Enter student ID to add/update marks: "))
+    except ValueError:
+        print("❌ Invalid ID.")
+        return
+
+    try:
+        marks = int(input("📊 Enter marks (0-100): "))
+        if marks < 0 or marks > 100:
+            print("❌ Marks should be between 0 and 100.")
             return
-    print("Login failed.")
+    except ValueError:
+        print("❌ Marks must be a number.")
+        return
 
-# ==== MAIN MENU ====
-def main():
-    ensure_files()
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE students SET marks=? WHERE id=?", (marks, sid))
+        if cur.rowcount == 0:
+            print("⚠️ No student found with that ID.\n")
+        else:
+            conn.commit()
+            print("✅ Marks updated successfully!\n")
+
+def top_students():
+    n = input("🔝 How many top students to display (by marks)? ").strip()
+    try:
+        n = int(n)
+        if n <= 0:
+            print("❌ Number must be positive.")
+            return
+    except ValueError:
+        print("❌ Invalid number.")
+        return
+
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM students ORDER BY marks DESC LIMIT ?", (n,))
+        rows = cur.fetchall()
+
+    if rows:
+        print(f"\n🏅 Top {n} Students by Marks:")
+        print(f"{'ID':<5} {'Name':<20} {'Class':<10} {'Father Name':<20} {'Father Phone':<15} {'Marks':<6}")
+        print("-" * 85)
+        for row in rows:
+            print(f"{row[0]:<5} {row[1]:<20} {row[2]:<10} {row[3]:<20} {row[4]:<15} {row[5]:<6}")
+    else:
+        print("⚠️ No students found.\n")
+
+# ---------------------- Optional Features ----------------------
+def search_students():
+    term = input("🔍 Enter search term (name/class/father's name): ").strip()
+    if not term:
+        print("❌ Search term cannot be empty.")
+        return
+    like_term = f"%{term}%"
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT * FROM students WHERE name LIKE ? OR student_class LIKE ? OR father_name LIKE ?",
+            (like_term, like_term, like_term)
+        )
+        rows = cur.fetchall()
+
+    if rows:
+        print("\n🔎 Search Results:")
+        print(f"{'ID':<5} {'Name':<20} {'Class':<10} {'Father Name':<20} {'Father Phone':<15} {'Marks':<6}")
+        print("-" * 85)
+        for row in rows:
+            print(f"{row[0]:<5} {row[1]:<20} {row[2]:<10} {row[3]:<20} {row[4]:<15} {row[5]:<6}")
+    else:
+        print("⚠️ No matching students found.\n")
+
+def export_to_csv():
+    with sqlite3.connect(DB_NAME) as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM students")
+        rows = cur.fetchall()
+
+    if not rows:
+        print("⚠️ No data to export.\n")
+        return
+
+    filename = input("💾 Enter filename to export (e.g., students.csv): ").strip()
+    if not filename:
+        print("❌ Filename cannot be empty.")
+        return
+    if not filename.endswith('.csv'):
+        filename += '.csv'
+
+    try:
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['ID', 'Name', 'Class', 'Father Name', 'Father Phone', 'Marks'])
+            writer.writerows(rows)
+        print(f"✅ Data exported successfully to {filename}\n")
+    except Exception as e:
+        print(f"❌ Error writing file: {e}")
+
+# ---------------------- Menu System ----------------------
+def main_menu():
     while True:
-        print("\n--- School App (CSV Based) ---")
-        print("1. Student Register\n2. Student Login\n3. Teacher Register\n4. Teacher Login\n5. Exit")
-        ch = input("Choose: ")
-        if ch == "1": register("student")
-        elif ch == "2": login("student")
-        elif ch == "3": register("teacher")
-        elif ch == "4": login("teacher")
-        elif ch == "5": break
-        else: print("Invalid option.")
+        print("\n📘 STUDENT MANAGEMENT SYSTEM")
+        print("1️⃣ Add Student")
+        print("2️⃣ View Students")
+        print("3️⃣ Update Student")
+        print("4️⃣ Delete Student")
+        print("5️⃣ Search Students")
+        print("6️⃣ Export to CSV")
+        print("7️⃣ Add/Update Student Marks")
+        print("8️⃣ Top Students by Marks")
+        print("9️⃣ Exit")
 
+        choice = input("👉 Enter your choice (1–9): ").strip()
+
+        match choice:
+            case '1':
+                add_student()
+            case '2':
+                view_students()
+            case '3':
+                update_student()
+            case '4':
+                delete_student()
+            case '5':
+                search_students()
+            case '6':
+                export_to_csv()
+            case '7':
+                add_update_marks()
+            case '8':
+                top_students()
+            case '9':
+                print("👋 Exiting program. Goodbye!")
+                break
+            case _:
+                print("❌ Invalid choice. Please try again.\n")
+
+# ---------------------- Entry Point ----------------------
 if __name__ == "__main__":
-    main()
+    init_db()
+    main_menu()
