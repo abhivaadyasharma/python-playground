@@ -2,8 +2,7 @@
 
 """
 Periodic Table CLI (118 elements) + Molar Mass Calculator
-Author: ChatGPT (for Mr.Richie)
-Usage: python periodic_table_tool.py
+Usage: This program helps to find elements using thier atomic number, element symbol 
 """
 from dataclasses import dataclass
 import re
