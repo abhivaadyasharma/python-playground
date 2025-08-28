@@ -1,8 +1,5 @@
 #Author: Abhivaadya Sharma
 
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Periodic Table CLI (118 elements) + Molar Mass Calculator
 Author: ChatGPT (for Mr.Richie)
