@@ -2,8 +2,10 @@
 
 """
 Periodic Table CLI (118 elements) + Molar Mass Calculator
-Usage: This program helps to find elements using thier atomic number, element symbol 
+Usage: This program helps to find elements using thier atomic number, element symbol and element name. It also helps you calculate molar mass.
 """
+import sympy as sp
+import random
 from dataclasses import dataclass
 import re
 from typing import Dict, Tuple, List
@@ -309,48 +311,196 @@ def print_table():
 def print_element(e: Element):
     print(f"\nAtomic Number : {e.Z}\nSymbol        : {e.symbol}\nName          : {e.name}\nAtomic Mass   : {e.atomic_mass} g/mol")
 
-def main():
-    MENU = """
---- PERIODIC TABLE MENU ---
-1. Search by Atomic Number
-2. Search by Symbol
-3. Search by Name
-4. Display Periodic Table
-5. Molar Mass of a Formula (e.g., H2SO4, Ca(OH)2, CuSO4·5H2O)
-6. Exit
-Choose: """
+def quiz_mode():
+    """Start quiz mode with random periodic table questions."""
+    print("\n--- QUIZ MODE ---")
+    print("Answer the questions. Type 'exit' to stop quiz.\n")
+
+    score = 0
+    total = 0
+
+    QUESTIONS = [
+        "symbol_from_number",
+        "number_from_symbol",
+        "name_from_symbol",
+        "symbol_from_name",
+        "mass_from_symbol"
+    ]
+
     while True:
-        choice = input(MENU).strip()
-        if choice == '1':
+        qtype = random.choice(QUESTIONS)
+        element = random.choice(ELEMENTS_LIST)
+        total += 1
+
+        if qtype == "symbol_from_number":
+            ans = input(f"Q{total}: What is the symbol of element with atomic number {element.Z}? ")
+            if ans.strip().capitalize() == element.symbol:
+                print("✅ Correct!")
+                score += 1
+            else:
+                print(f"❌ Wrong. Correct answer: {element.symbol}")
+
+        elif qtype == "number_from_symbol":
+            ans = input(f"Q{total}: What is the atomic number of {element.symbol}? ")
+            if ans.strip().isdigit() and int(ans) == element.Z:
+                print("✅ Correct!")
+                score += 1
+            else:
+                print(f"❌ Wrong. Correct answer: {element.Z}")
+
+        elif qtype == "name_from_symbol":
+            ans = input(f"Q{total}: What is the name of element {element.symbol}? ")
+            if ans.strip().lower() == element.name.lower():
+                print("✅ Correct!")
+                score += 1
+            else:
+                print(f"❌ Wrong. Correct answer: {element.name}")
+
+        elif qtype == "symbol_from_name":
+            ans = input(f"Q{total}: What is the symbol of {element.name}? ")
+            if ans.strip().capitalize() == element.symbol:
+                print("✅ Correct!")
+                score += 1
+            else:
+                print(f"❌ Wrong. Correct answer: {element.symbol}")
+
+        elif qtype == "mass_from_symbol":
+            ans = input(f"Q{total}: Approximate atomic mass of {element.symbol}? (g/mol) ")
             try:
-                z = int(input("Enter atomic number: "))
+                if abs(float(ans) - element.atomic_mass) < 0.5:  # small tolerance
+                    print("✅ Correct (within tolerance)!")
+                    score += 1
+                else:
+                    print(f"❌ Wrong. Correct answer: {element.atomic_mass}")
             except ValueError:
-                print("Please enter a valid integer."); continue
-            el = get_by_atomic_number(z)
-            print_element(el) if el else print("Element not found.")
-        elif choice == '2':
-            sym = input("Enter symbol (e.g., Fe): ").strip()
+                print(f"❌ Wrong. Correct answer: {element.atomic_mass}")
+
+        # Exit condition
+        if ans.strip().lower() == "exit":
+            total -= 1  # don't count the exit as a question
+            break
+
+        print(f"Score: {score}/{total}\n")
+
+    print(f"Final Score: {score}/{total}")
+    print("Exiting Quiz Mode...\n")
+
+# -------------------------
+# Equation Balancer
+# -------------------------
+def balance_equation(equation: str) -> str:
+    try:
+        left, right = equation.split("->")
+        reactants = [x.strip() for x in left.split("+")]
+        products = [x.strip() for x in right.split("+")]
+        species = reactants + products
+
+        # Parse formulas
+        all_elements = set()
+        parsed = []
+        for spc in species:
+            counts = parse_formula(spc)
+            parsed.append(counts)
+            all_elements.update(counts.keys())
+
+        all_elements = sorted(all_elements)
+        n = len(species)
+
+        # Build matrix
+        matrix = []
+        for elem in all_elements:
+            row = []
+            for j, counts in enumerate(parsed):
+                cnt = counts.get(elem, 0)
+                if j < len(reactants):
+                    row.append(cnt)
+                else:
+                    row.append(-cnt)
+            matrix.append(row)
+
+        M = sp.Matrix(matrix)
+        nullspace = M.nullspace()
+        if not nullspace:
+            return "No solution found."
+
+        coeffs = nullspace[0]
+        lcm = sp.lcm([term.q for term in coeffs])
+        coeffs = [int(term * lcm) for term in coeffs]
+
+        # Format equation
+        left_side = " + ".join(f"{coeffs[i]} {reactants[i]}" for i in range(len(reactants)))
+        right_side = " + ".join(f"{coeffs[i+len(reactants)]} {products[i]}" for i in range(len(products)))
+        return left_side + " -> " + right_side
+    except Exception as e:
+        return f"Error: {e}"
+
+# -------------------------
+        #Main Menu 
+# -------------------------
+def main():
+    while True:
+        print("\n--- Periodic Table CLI ---")
+        print("1. Find element by atomic number")
+        print("2. Find element by symbol")
+        print("3. Find element by name")
+        print("4. Calculate molar mass")
+        print("5. Quiz mode")
+        print("6. Balance chemical equation")
+        print("7. Exit")
+        choice = input("Enter choice: ")
+
+        if choice == "1":
+            try:
+                Z = int(input("Enter atomic number: "))
+                el = get_by_atomic_number(Z)
+                if el:
+                    print(el)
+                else:
+                    print("Not found.")
+            except ValueError:
+                print("Invalid input.")
+
+        elif choice == "2":
+            sym = input("Enter symbol: ")
             el = get_by_symbol(sym)
-            print_element(el) if el else print("Element not found.")
-        elif choice == '3':
-            name = input("Enter name (e.g., Oxygen): ").strip()
+            if el:
+                print(el)
+            else:
+                print("Not found.")
+
+        elif choice == "3":
+            name = input("Enter name: ")
             el = get_by_name(name)
-            print_element(el) if el else print("Element not found.")
-        elif choice == '4':
-            print_table()
-        elif choice == '5':
-            formula = input("Enter chemical formula: ").strip()
+            if el:
+                print(el)
+            else:
+                print("Not found.")
+
+        elif choice == "4":
+            formula = input("Enter chemical formula (e.g., H2O, Ca(OH)2, CuSO4·5H2O): ")
             try:
                 counts = parse_formula(formula)
-                M = molar_mass(formula)
-                print(f"\nParsed: {pretty_counts(counts)}")
-                print(f"Molar mass of {formula} = {M:.4f} g/mol")
-            except Exception as ex:
-                print(f"Error: {ex}")
-        elif choice == '6':
-            print("Goodbye!"); break
+                mass = molar_mass(counts)
+                print("Composition:", pretty_counts(counts))
+                print(f"Molar mass = {mass:.3f} g/mol")
+            except Exception as e:
+                print("Error:", e)
+
+        elif choice == "5":
+            quiz_mode()
+
+        elif choice == "6":
+             eq = input("Enter chemical equation (e.g., H2 + O2 -> H2O): ")
+             print("Balanced:", balance_equation(eq))
+
+
+        elif choice == "7":
+            print("Goodbye!")
+            break  
         else:
-            print("Invalid choice. Try again.")
+            print("Invalid choice.")
+
 
 if __name__ == '__main__':
     main()
+
