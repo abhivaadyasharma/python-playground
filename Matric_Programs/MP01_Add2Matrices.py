@@ -40,3 +40,4 @@ for i in range(rows):
 print_matrix(A, "Matrix A")
 print_matrix(B, "Matrix B")
 print_matrix(result, "Resultant Matrix (A + B)")
+set

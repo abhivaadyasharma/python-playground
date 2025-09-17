@@ -9,5 +9,5 @@ numbers = list(map(int, user_input.split()))
 # Print only the odd numbers
 print("Odd numbers in the list are:")
 for num in numbers:
-    if num / 2 != 0:
+    if num % 2 != 0:
         print(num)
