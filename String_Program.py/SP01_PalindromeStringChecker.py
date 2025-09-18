@@ -12,3 +12,5 @@ if cleaned == cleaned[::-1]:
 else:
     print("No, it's not a Palindrome.")
 
+\
+
