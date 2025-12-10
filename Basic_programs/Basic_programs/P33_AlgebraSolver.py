@@ -31,4 +31,4 @@ def algebra_solver():
 # Run the program
 if __name__ == "__main__":
     algebra_solver()
-    
+
